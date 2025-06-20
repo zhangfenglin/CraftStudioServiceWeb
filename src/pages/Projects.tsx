@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Alert, Snackbar } from '@mui/material';
-import { createProject, deleteProject, getProjects } from '../api/projects';
+import { createProject, deleteProject, getProjects, updateProject } from '../api/projects';
 import type { Project } from '../api/project.define';
 
 const Projects = () => {
   const [open, setOpen] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [form, setForm] = useState({ name: '', desc: '' });
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
@@ -42,11 +44,27 @@ const Projects = () => {
     fetchProjects();
   }, []);
 
-  const handleOpen = () => setOpen(true);
+  const handleOpen = () => {
+    setIsEdit(false);
+    setCurrentProject(null);
+    setForm({ name: '', desc: '' });
+    setOpen(true);
+  };
+
+  const handleEdit = (project: Project) => {
+    setIsEdit(true);
+    setCurrentProject(project);
+    setForm({ name: project.name, desc: project.desc });
+    setOpen(true);
+  };
+
   const handleClose = () => {
     setOpen(false);
+    setIsEdit(false);
+    setCurrentProject(null);
     setForm({ name: '', desc: '' });
   };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -55,28 +73,48 @@ const Projects = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await createProject(form);
-      if (response.data.code === 1) {
-        setSnackbar({
-          open: true,
-          message: '创建成功',
-          severity: 'success'
-        });
-        handleClose();
-        // 创建成功后刷新项目列表
-        fetchProjects();
+      if (isEdit && currentProject) {
+        // 编辑项目
+        const response = await updateProject(currentProject.id, form);
+        if (response.data.code === 1) {
+          setSnackbar({
+            open: true,
+            message: '更新成功',
+            severity: 'success'
+          });
+          handleClose();
+          fetchProjects();
+        } else {
+          setSnackbar({
+            open: true,
+            message: response.data.msg || '更新失败',
+            severity: 'error'
+          });
+        }
       } else {
-        setSnackbar({
-          open: true,
-          message: response.data.msg || '创建失败',
-          severity: 'error'
-        });
+        // 创建项目
+        const response = await createProject(form);
+        if (response.data.code === 1) {
+          setSnackbar({
+            open: true,
+            message: '创建成功',
+            severity: 'success'
+          });
+          handleClose();
+          fetchProjects();
+        } else {
+          setSnackbar({
+            open: true,
+            message: response.data.msg || '创建失败',
+            severity: 'error'
+          });
+        }
       }
     } catch (error) {
-      console.error('创建项目失败:', error);
+      console.error(isEdit ? '更新项目失败:' : '创建项目失败:', error);
       setSnackbar({
         open: true,
-        message: '创建失败，请稍后重试',
+        message: isEdit ? '更新失败，请稍后重试' : '创建失败，请稍后重试',
         severity: 'error'
       });
     } finally {
@@ -130,7 +168,6 @@ const Projects = () => {
             <TableHead>
               <TableRow>
                 <TableCell>作品名称</TableCell>
-                <TableCell>状态</TableCell>
                 <TableCell>描述</TableCell>
                 <TableCell>操作</TableCell>
               </TableRow>
@@ -148,11 +185,10 @@ const Projects = () => {
                 projects.map((project) => (
                   <TableRow key={project.id}>
                     <TableCell>{project.name}</TableCell>
-                    <TableCell>{getStatusText(project.status)}</TableCell>
                     <TableCell>{project.desc}</TableCell>
                     <TableCell>
                       <Button size="small" variant="outlined">查看</Button>
-                      <Button size="small" variant="outlined" sx={{ ml: 1 }}>编辑</Button>
+                      <Button size="small" variant="outlined" sx={{ ml: 1 }} onClick={() => handleEdit(project)}>编辑</Button>
                       <Button size="small" variant="outlined" color="error" sx={{ ml: 1 }} onClick={() => handleDelete(project.id)}>删除</Button>
                     </TableCell>
                   </TableRow>
@@ -163,7 +199,7 @@ const Projects = () => {
         </TableContainer>
       </Paper>
       <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
-        <DialogTitle>新建项目</DialogTitle>
+        <DialogTitle>{isEdit ? '编辑项目' : '新建项目'}</DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
             <TextField
@@ -198,7 +234,7 @@ const Projects = () => {
           <DialogActions>
             <Button onClick={handleClose} disabled={loading}>取消</Button>
             <Button type="submit" variant="contained" disabled={loading}>
-              {loading ? '创建中...' : '确定'}
+              {loading ? (isEdit ? '更新中...' : '创建中...') : (isEdit ? '更新' : '确定')}
             </Button>
           </DialogActions>
         </form>
