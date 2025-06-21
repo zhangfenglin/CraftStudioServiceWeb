@@ -354,15 +354,26 @@ const Projects = () => {
     <TableContainer>
       <Table stickyHeader sx={{ tableLayout: 'fixed' }}>
         <TableHead>
-          <TableRow>
+          <TableRow
+            sx={{
+              '& .MuiTableCell-root': {
+                backgroundColor: 'grey.100',
+                fontWeight: 'bold',
+                color: 'grey.700',
+                borderBottom: '2px solid',
+                borderColor: 'divider',
+              },
+            }}
+          >
             <TableCell padding="checkbox" sx={{ width: '5%' }}>
               <Checkbox
                 indeterminate={selectedProjects.length > 0 && selectedProjects.length < sortedProjects.length}
                 checked={selectedProjects.length > 0 && selectedProjects.length === sortedProjects.length}
                 onChange={handleSelectAll}
+                color="primary"
               />
             </TableCell>
-            <TableCell sx={{ width: '25%' }}>项目名称</TableCell>
+            <TableCell sx={{ width: '23%' }}>项目名称</TableCell>
             <TableCell sx={{ width: '20%' }}>描述</TableCell>
             <TableCell sx={{ width: '10%' }}>状态</TableCell>
             <TableCell sx={{ width: '15%' }}>创建时间</TableCell>
@@ -373,7 +384,7 @@ const Projects = () => {
         <TableBody>
           {sortedProjects.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} align="center" sx={{ py: 8 }}>
+              <TableCell colSpan={7} align="center" sx={{ py: 8, border: 0 }}>
                 <Typography variant="h6" color="text.secondary" mb={1}>
                   {searchTerm ? '没有找到匹配的项目' : '暂无项目数据'}
                 </Typography>
@@ -388,11 +399,20 @@ const Projects = () => {
                 key={project.id}
                 hover
                 selected={selectedProjects.includes(project.id)}
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor: 'action.selected',
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
+                    },
+                  },
+                }}
               >
                 <TableCell padding="checkbox">
                   <Checkbox
                     checked={selectedProjects.includes(project.id)}
                     onChange={() => handleSelectProject(project.id)}
+                    color="primary"
                   />
                 </TableCell>
                 <TableCell>
@@ -413,8 +433,12 @@ const Projects = () => {
                   <Chip 
                     label={project.status === 1 ? '进行中' : '已完成'} 
                     size="small"
-                    color={project.status === 2 ? 'success' : 'primary'}
-                    variant="outlined"
+                    color={project.status === 1 ? 'info' : 'success'}
+                    variant="filled"
+                    sx={{
+                      color: 'white',
+                      fontWeight: 500
+                    }}
                   />
                 </TableCell>
                 <TableCell>
@@ -433,7 +457,7 @@ const Projects = () => {
                       <IconButton 
                         size="small" 
                         onClick={() => handleViewDetail(project.id)}
-                        color="primary"
+                        color="default"
                       >
                         <ViewIcon />
                       </IconButton>
@@ -442,7 +466,7 @@ const Projects = () => {
                       <IconButton 
                         size="small" 
                         onClick={() => handleEdit(project)}
-                        color="info"
+                        color="primary"
                       >
                         <EditIcon />
                       </IconButton>
@@ -485,22 +509,35 @@ const Projects = () => {
                 sx={{ 
                   height: '100%',
                   transition: 'all 0.3s ease',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  boxShadow: 'none',
                   '&:hover': {
                     transform: 'translateY(-4px)',
-                    boxShadow: 4
-                  }
+                    boxShadow: 3,
+                    borderColor: 'primary.main',
+                  },
+                  ...(selectedProjects.includes(project.id) && {
+                    boxShadow: 3,
+                    borderColor: 'primary.main',
+                  })
                 }}
               >
-                <CardContent>
+                <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
                     <Checkbox
                       checked={selectedProjects.includes(project.id)}
                       onChange={() => handleSelectProject(project.id)}
+                      color="primary"
+                      sx={{ p: 0, m: 1 }}
                     />
                     <Chip 
                       label={project.status === 1 ? '进行中' : '已完成'} 
                       size="small"
-                      color={project.status === 2 ? 'success' : 'primary'}
+                      color={project.status === 1 ? 'info' : 'success'}
+                      variant="filled"
+                      sx={{ color: 'white', fontWeight: 500 }}
                     />
                   </Stack>
                   
@@ -509,6 +546,7 @@ const Projects = () => {
                   </Typography>
                   
                   <Typography variant="body2" color="text.secondary" mb={2} sx={{
+                    flexGrow: 1,
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical',
@@ -537,7 +575,7 @@ const Projects = () => {
                       <IconButton 
                         size="small" 
                         onClick={() => handleViewDetail(project.id)}
-                        color="primary"
+                        color="default"
                       >
                         <ViewIcon />
                       </IconButton>
@@ -546,7 +584,7 @@ const Projects = () => {
                       <IconButton 
                         size="small" 
                         onClick={() => handleEdit(project)}
-                        color="info"
+                        color="primary"
                       >
                         <EditIcon />
                       </IconButton>
