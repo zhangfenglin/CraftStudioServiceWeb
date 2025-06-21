@@ -18,15 +18,29 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import RefreshIcon from '@mui/icons-material/Refresh';
+import {
+  Add as AddIcon,
+  FilterList as FilterListIcon,
+  Refresh as RefreshIcon,
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 const ReleaseOrders: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleCreate = () => {
+    navigate('/release-orders/create');
+  };
+
   return (
     <Box>
       <Paper elevation={0} sx={{ p: 3, borderRadius: 3, background: 'linear-gradient(90deg, #f7f8fa 60%, #e9f1ff 100%)', width: '100%', height: '100%', flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Typography variant="h5" fontWeight={700} mb={2}>发布单管理</Typography>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="h4">发布单管理</Typography>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreate}>
+            新建发布单
+          </Button>
+        </Stack>
         
         {/* 功能区 */}
         <Paper elevation={0} sx={{ p: 2, mb: 2, borderRadius: 2, background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(10px)' }}>
@@ -75,19 +89,6 @@ const ReleaseOrders: React.FC = () => {
                   <RefreshIcon />
                 </IconButton>
               </Tooltip>
-              
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                size="small"
-                sx={{ 
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontWeight: 600
-                }}
-              >
-                新建发布单
-              </Button>
             </Box>
           </Stack>
         </Paper>
