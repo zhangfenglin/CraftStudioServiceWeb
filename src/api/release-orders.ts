@@ -22,7 +22,7 @@ export const getReleaseOrders = (params: ReleaseOrderListParams) => {
 
 // 获取发布单详情
 export const getReleaseOrder = (id: string) => {
-  return request.get<ApiResponse<ReleaseOrderDetailResponse>>(`/release/order/${id}`);
+  return request.get<ApiResponse<ReleaseOrderDetailResponse>>(`/release/orders/${id}`);
 };
 
 // 更新发布单
