@@ -25,5 +25,9 @@ export const currentConfig = API_CONFIG[env as keyof typeof API_CONFIG];
 
 // 构建完整的 API 基础 URL
 export const getBaseUrl = () => {
-  return `${currentConfig.host}/api/${currentConfig.version}`;
+  if (currentConfig.host) {
+    return `${currentConfig.host}/api/${currentConfig.version}`;
+  }
+  // 开发环境使用相对路径
+  return `/api/${currentConfig.version}`;
 }; 

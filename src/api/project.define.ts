@@ -15,6 +15,8 @@ export interface Project {
   name: string;
   desc: string;
   status: ProjectStatusType;
+  created_at: string;
+  updated_at: string;
 }
 
 // 创建项目请求模型
