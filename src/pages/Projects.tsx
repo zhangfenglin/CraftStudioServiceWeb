@@ -1,17 +1,23 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Alert, Snackbar } from '@mui/material';
-import { createProject, deleteProject, getProjects, updateProject } from '../api/projects';
+import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Stack, Alert, Snackbar } from '@mui/material';
+import { createProject, deleteProject, getProjects, updateProject, getProject } from '../api/projects';
 import type { Project } from '../api/project.define';
+import ProjectDetail from '../components/ProjectDetail';
+import ProjectForm from '../components/ProjectForm';
 
 const Projects = () => {
   const [open, setOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
-  const [form, setForm] = useState({ name: '', desc: '' });
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const [projects, setProjects] = useState<Project[]>([]);
   const [listLoading, setListLoading] = useState(false);
+  
+  // 查看详情相关状态
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [projectDetail, setProjectDetail] = useState<Project | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   // 获取项目列表
   const fetchProjects = async () => {
@@ -47,14 +53,12 @@ const Projects = () => {
   const handleOpen = () => {
     setIsEdit(false);
     setCurrentProject(null);
-    setForm({ name: '', desc: '' });
     setOpen(true);
   };
 
   const handleEdit = (project: Project) => {
     setIsEdit(true);
     setCurrentProject(project);
-    setForm({ name: project.name, desc: project.desc });
     setOpen(true);
   };
 
@@ -62,20 +66,47 @@ const Projects = () => {
     setOpen(false);
     setIsEdit(false);
     setCurrentProject(null);
-    setForm({ name: '', desc: '' });
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  // 查看项目详情
+  const handleViewDetail = async (id: string) => {
+    setDetailLoading(true);
+    try {
+      const response = await getProject(id);
+      if (response.data.code === 1) {
+        setProjectDetail(response.data.data);
+        setDetailOpen(true);
+      } else {
+        setSnackbar({
+          open: true,
+          message: response.data.msg || '获取项目详情失败',
+          severity: 'error'
+        });
+      }
+    } catch (error) {
+      console.error('获取项目详情失败:', error);
+      setSnackbar({
+        open: true,
+        message: '获取项目详情失败，请稍后重试',
+        severity: 'error'
+      });
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleDetailClose = () => {
+    setDetailOpen(false);
+    setProjectDetail(null);
+  };
+
+  // 处理表单提交
+  const handleSubmit = async (formData: { name: string; desc: string }) => {
     setLoading(true);
     try {
       if (isEdit && currentProject) {
         // 编辑项目
-        const response = await updateProject(currentProject.id, form);
+        const response = await updateProject(currentProject.id, formData);
         if (response.data.code === 1) {
           setSnackbar({
             open: true,
@@ -93,7 +124,7 @@ const Projects = () => {
         }
       } else {
         // 创建项目
-        const response = await createProject(form);
+        const response = await createProject(formData);
         if (response.data.code === 1) {
           setSnackbar({
             open: true,
@@ -150,11 +181,6 @@ const Projects = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  // 获取状态文本
-  const getStatusText = (status: number) => {
-    return status === 1 ? '连载中' : '已完结';
-  };
-
   return (
     <Box>
       <Paper elevation={0} sx={{ p: 3, borderRadius: 3, background: 'linear-gradient(90deg, #f7f8fa 60%, #e9f1ff 100%)', width: '100%', height: '100%', flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -175,11 +201,11 @@ const Projects = () => {
             <TableBody>
               {listLoading ? (
                 <TableRow>
-                  <TableCell colSpan={4} align="center">加载中...</TableCell>
+                  <TableCell colSpan={3} align="center">加载中...</TableCell>
                 </TableRow>
               ) : projects.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} align="center">暂无数据</TableCell>
+                  <TableCell colSpan={3} align="center">暂无数据</TableCell>
                 </TableRow>
               ) : (
                 projects.map((project) => (
@@ -187,7 +213,7 @@ const Projects = () => {
                     <TableCell>{project.name}</TableCell>
                     <TableCell>{project.desc}</TableCell>
                     <TableCell>
-                      <Button size="small" variant="outlined">查看</Button>
+                      <Button size="small" variant="outlined" onClick={() => handleViewDetail(project.id)}>查看</Button>
                       <Button size="small" variant="outlined" sx={{ ml: 1 }} onClick={() => handleEdit(project)}>编辑</Button>
                       <Button size="small" variant="outlined" color="error" sx={{ ml: 1 }} onClick={() => handleDelete(project.id)}>删除</Button>
                     </TableCell>
@@ -198,47 +224,25 @@ const Projects = () => {
           </Table>
         </TableContainer>
       </Paper>
-      <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
-        <DialogTitle>{isEdit ? '编辑项目' : '新建项目'}</DialogTitle>
-        <form onSubmit={handleSubmit}>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              label="名称"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              fullWidth
-              required
-              disabled={loading}
-            />
-            <TextField
-              margin="dense"
-              label="描述"
-              name="desc"
-              value={form.desc}
-              onChange={e => {
-                if (e.target.value.length <= 300) {
-                  handleChange(e);
-                }
-              }}
-              fullWidth
-              multiline
-              minRows={5}
-              inputProps={{ maxLength: 300 }}
-              helperText={`${form.desc.length}/300`}
-              disabled={loading}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose} disabled={loading}>取消</Button>
-            <Button type="submit" variant="contained" disabled={loading}>
-              {loading ? (isEdit ? '更新中...' : '创建中...') : (isEdit ? '更新' : '确定')}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+      
+      {/* 项目表单组件 */}
+      <ProjectForm
+        open={open}
+        onClose={handleClose}
+        onSubmit={handleSubmit}
+        project={currentProject}
+        isEdit={isEdit}
+        loading={loading}
+      />
+
+      {/* 项目详情组件 */}
+      <ProjectDetail
+        open={detailOpen}
+        onClose={handleDetailClose}
+        project={projectDetail}
+        loading={detailLoading}
+      />
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
