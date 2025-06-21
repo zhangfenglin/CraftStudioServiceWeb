@@ -172,6 +172,8 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
           minWidth: 0,
           p: { xs: 1, sm: 3 },
           bgcolor: '#f7f8fa',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         <Toolbar />

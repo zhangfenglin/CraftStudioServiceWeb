@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { 
   Box, 
   Typography, 
-  Paper, 
   Table, 
   TableBody, 
   TableCell, 
@@ -19,25 +18,30 @@ import {
   Chip,
   Checkbox,
   Tooltip,
-  Menu,
-  MenuItem,
   Card,
   CardContent,
   Grid,
   LinearProgress,
-  Badge
+  Pagination,
+  FormControl,
+  Select,
+  MenuItem,
+  InputLabel,
+  Menu,
+  Paper,
+  Badge,
 } from '@mui/material';
 import {
   Search as SearchIcon,
-  FilterList as FilterIcon,
   Add as AddIcon,
   Refresh as RefreshIcon,
   Delete as DeleteIcon,
   Edit as EditIcon,
   Visibility as ViewIcon,
-  Sort as SortIcon,
   AccessTime as TimeIcon,
   Update as UpdateIcon,
+  FilterList as FilterIcon,
+  Sort as SortIcon,
 } from '@mui/icons-material';
 import { createProject, deleteProject, getProjects, updateProject, getProject } from '../api/projects';
 import type { Project } from '../api/project.define';
@@ -64,24 +68,35 @@ const Projects = () => {
   // 新增功能状态
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
-  const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
-  const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('name');
+  const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
+  const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    size: 10,
+    total: 0,
+  });
 
   // 使用错误处理 Hook
   const { errorState, handleError, clearError } = useErrorHandler();
 
   // 获取项目列表
-  const fetchProjects = async () => {
+  const fetchProjects = async (page = pagination.page, size = pagination.size) => {
     setListLoading(true);
     clearError(); // 清除之前的错误
     
     try {
-      const response = await getProjects({ page: 1, size: 10 });
+      const response = await getProjects({ page, size });
       if (response.data.code === ErrorCode.SUCCESS || response.data.code === 1) {
         setProjects(response.data.data.list);
+        setPagination(prev => ({
+          ...prev,
+          total: response.data.data.total,
+          page: page,
+          size: size,
+        }));
       } else {
         // 处理业务错误
         handleError({
@@ -249,7 +264,12 @@ const Projects = () => {
           message: '删除成功',
           severity: 'success'
         });
-        fetchProjects();
+        // Check if it's the last item on a page > 1
+        if (sortedProjects.length === 1 && pagination.page > 1) {
+          fetchProjects(pagination.page - 1, pagination.size);
+        } else {
+          fetchProjects(pagination.page, pagination.size);
+        }
       } else {
         handleError({
           code: response.data.code,
@@ -272,17 +292,23 @@ const Projects = () => {
     clearError();
     
     try {
-      // 这里应该调用批量删除API
-      for (const id of selectedProjects) {
-        await deleteProject(id);
-      }
+      const promises = selectedProjects.map(id => deleteProject(id));
+      // This will throw if any of the promises reject
+      await Promise.all(promises);
+
       setSnackbar({
         open: true,
         message: `成功删除 ${selectedProjects.length} 个项目`,
         severity: 'success'
       });
+
+      // Check if all items on the current page were deleted on a page > 1
+      if (selectedProjects.length === sortedProjects.length && pagination.page > 1) {
+        fetchProjects(pagination.page - 1, pagination.size);
+      } else {
+        fetchProjects(pagination.page, pagination.size);
+      }
       setSelectedProjects([]);
-      fetchProjects();
     } catch (error) {
       handleError(error);
     } finally {
@@ -293,7 +319,7 @@ const Projects = () => {
   // 全选/取消全选
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      setSelectedProjects(sortedProjects.map(p => p.id));
+      setSelectedProjects(sortedProjects.map((p) => p.id));
     } else {
       setSelectedProjects([]);
     }
@@ -301,10 +327,8 @@ const Projects = () => {
 
   // 选择单个项目
   const handleSelectProject = (id: string) => {
-    setSelectedProjects(prev => 
-      prev.includes(id) 
-        ? prev.filter(p => p !== id)
-        : [...prev, id]
+    setSelectedProjects(prev =>
+      prev.includes(id) ? prev.filter(pId => pId !== id) : [...prev, id]
     );
   };
 
@@ -312,428 +336,387 @@ const Projects = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* 头部区域 */}
-      <Paper elevation={0} sx={{ 
-        p: 3, 
-        borderRadius: 3, 
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-        mb: 2
-      }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Box>
-            <Typography variant="h4" fontWeight={700} mb={1}>
-              项目管理
-            </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.9 }}>
-              管理您的创意作品和项目
-            </Typography>
-          </Box>
-          <Badge badgeContent={projects.length} color="secondary">
-            <Box sx={{ 
-              p: 2, 
-              borderRadius: 2, 
-              background: 'rgba(255,255,255,0.1)',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <Typography variant="h6" fontWeight={600}>
-                项目总数
-              </Typography>
-            </Box>
-          </Badge>
-        </Stack>
-      </Paper>
+  const handlePageChange = (event: React.ChangeEvent<unknown>, newPage: number) => {
+    fetchProjects(newPage, pagination.size);
+  };
 
-      {/* 功能区 */}
-      <Paper elevation={0} sx={{ 
-        p: 3, 
-        borderRadius: 3, 
-        background: '#fff',
-        mb: 2,
-        border: '1px solid #e0e3e7'
-      }}>
-        <Stack spacing={2}>
-          {/* 搜索和操作栏 */}
-          <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" gap={2}>
-            {/* 搜索框 */}
-            <TextField
-              size="small"
-              placeholder="搜索项目名称或描述..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              sx={{ minWidth: 300, flex: 1 }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon color="action" />
-                  </InputAdornment>
-                ),
-              }}
-            />
+  const handleRowsPerPageChange = (event: { target: { value: string } }) => {
+    const newSize = parseInt(event.target.value, 10);
+    fetchProjects(1, newSize);
+  };
 
-            {/* 筛选按钮 */}
-            <Tooltip title="筛选">
-              <IconButton 
-                onClick={(e) => setFilterAnchorEl(e.currentTarget)}
-                sx={{ border: '1px solid #e0e3e7' }}
-              >
-                <FilterIcon />
-              </IconButton>
-            </Tooltip>
+  const handleRefresh = () => {
+    fetchProjects(pagination.page, pagination.size);
+    setSnackbar({ open: true, message: '列表已刷新', severity: 'success' });
+  };
 
-            {/* 排序按钮 */}
-            <Tooltip title="排序">
-              <IconButton 
-                onClick={(e) => setSortAnchorEl(e.currentTarget)}
-                sx={{ border: '1px solid #e0e3e7' }}
-              >
-                <SortIcon />
-              </IconButton>
-            </Tooltip>
-
-            {/* 视图切换 */}
-            <Stack direction="row" spacing={1}>
-              <Button
-                variant={viewMode === 'table' ? 'contained' : 'outlined'}
-                size="small"
-                onClick={() => setViewMode('table')}
-              >
-                表格
-              </Button>
-              <Button
-                variant={viewMode === 'card' ? 'contained' : 'outlined'}
-                size="small"
-                onClick={() => setViewMode('card')}
-              >
-                卡片
-              </Button>
-            </Stack>
-
-            <Box sx={{ flexGrow: 1 }} />
-
-            {/* 操作按钮 */}
-            <Stack direction="row" spacing={1}>
-              <Tooltip title="刷新">
-                <IconButton onClick={fetchProjects} disabled={listLoading}>
-                  <RefreshIcon />
-                </IconButton>
-              </Tooltip>
-              
-              {selectedProjects.length > 0 && (
-                <Button
-                  variant="outlined"
-                  color="error"
-                  startIcon={<DeleteIcon />}
-                  onClick={handleBatchDelete}
-                  disabled={loading}
-                >
-                  批量删除 ({selectedProjects.length})
-                </Button>
-              )}
-              
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={handleOpen}
-                sx={{
-                  background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
-                  '&:hover': {
-                    background: 'linear-gradient(45deg, #5a6fd8 30%, #6a4190 90%)',
-                  }
-                }}
-              >
-                新建项目
-              </Button>
-            </Stack>
-          </Stack>
-
-          {/* 筛选菜单 */}
-          <Menu
-            anchorEl={filterAnchorEl}
-            open={Boolean(filterAnchorEl)}
-            onClose={() => setFilterAnchorEl(null)}
-          >
-            <MenuItem onClick={() => { setFilterStatus('all'); setFilterAnchorEl(null); }}>
-              全部项目
-            </MenuItem>
-            <MenuItem onClick={() => { setFilterStatus('active'); setFilterAnchorEl(null); }}>
-              活跃项目
-            </MenuItem>
-            <MenuItem onClick={() => { setFilterStatus('completed'); setFilterAnchorEl(null); }}>
-              已完成
-            </MenuItem>
-          </Menu>
-
-          {/* 排序菜单 */}
-          <Menu
-            anchorEl={sortAnchorEl}
-            open={Boolean(sortAnchorEl)}
-            onClose={() => setSortAnchorEl(null)}
-          >
-            <MenuItem onClick={() => { setSortBy('name'); setSortAnchorEl(null); }}>
-              按名称排序
-            </MenuItem>
-            <MenuItem onClick={() => { setSortBy('date'); setSortAnchorEl(null); }}>
-              按创建时间排序
-            </MenuItem>
-          </Menu>
-
-          {/* 统计信息 */}
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Chip 
-              label={`共 ${projects.length} 个项目`} 
-              color="primary" 
-              variant="outlined" 
-            />
-            {searchTerm && (
-              <Chip 
-                label={`搜索结果: ${filteredProjects.length} 个`} 
-                color="secondary" 
-                variant="outlined"
-                onDelete={() => setSearchTerm('')}
+  const renderTable = () => (
+    <TableContainer>
+      <Table stickyHeader>
+        <TableHead>
+          <TableRow>
+            <TableCell padding="checkbox">
+              <Checkbox
+                indeterminate={selectedProjects.length > 0 && selectedProjects.length < sortedProjects.length}
+                checked={selectedProjects.length > 0 && selectedProjects.length === sortedProjects.length}
+                onChange={handleSelectAll}
               />
-            )}
-            {filterStatus !== 'all' && (
-              <Chip 
-                label={`筛选: ${filterStatus}`} 
-                color="info" 
-                variant="outlined"
-                onDelete={() => setFilterStatus('all')}
-              />
-            )}
-          </Stack>
-        </Stack>
-      </Paper>
-
-      {/* 内容区域 */}
-      <Paper elevation={0} sx={{ 
-        flex: 1, 
-        borderRadius: 3, 
-        background: '#fff',
-        border: '1px solid #e0e3e7',
-        overflow: 'hidden'
-      }}>
-        {listLoading && <LinearProgress />}
-        
-        {viewMode === 'table' ? (
-          <TableContainer sx={{ height: '100%' }}>
-            <Table stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      indeterminate={selectedProjects.length > 0 && selectedProjects.length < sortedProjects.length}
-                      checked={selectedProjects.length > 0 && selectedProjects.length === sortedProjects.length}
-                      onChange={handleSelectAll}
-                    />
-                  </TableCell>
-                  <TableCell>项目名称</TableCell>
-                  <TableCell>描述</TableCell>
-                  <TableCell>状态</TableCell>
-                  <TableCell>创建时间</TableCell>
-                  <TableCell>更新时间</TableCell>
-                  <TableCell align="center">操作</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {sortedProjects.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center" sx={{ py: 8 }}>
-                      <Typography variant="h6" color="text.secondary" mb={1}>
-                        {searchTerm ? '没有找到匹配的项目' : '暂无项目数据'}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {searchTerm ? '请尝试调整搜索条件' : '点击"新建项目"开始创建您的第一个项目'}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  sortedProjects.map((project) => (
-                    <TableRow 
-                      key={project.id}
-                      hover
-                      selected={selectedProjects.includes(project.id)}
-                    >
-                      <TableCell padding="checkbox">
-                        <Checkbox
-                          checked={selectedProjects.includes(project.id)}
-                          onChange={() => handleSelectProject(project.id)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="subtitle2" fontWeight={600}>
-                          {project.name}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary" noWrap>
-                          {project.desc}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={project.status === 1 ? '进行中' : '已完成'} 
-                          size="small"
-                          color={project.status === 2 ? 'success' : 'primary'}
-                          variant="outlined"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {project.created_at ? new Date(project.created_at.split('/').join('-')).toLocaleString() : '-'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {project.updated_at ? new Date(project.updated_at.split('/').join('-')).toLocaleString() : '-'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Stack direction="row" spacing={1} justifyContent="center">
-                          <Tooltip title="查看详情">
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleViewDetail(project.id)}
-                              color="primary"
-                            >
-                              <ViewIcon />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="编辑">
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleEdit(project)}
-                              color="info"
-                            >
-                              <EditIcon />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="删除">
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleDelete(project.id)}
-                              color="error"
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        ) : (
-          // 卡片视图
-          <Box sx={{ p: 3, height: '100%', overflow: 'auto' }}>
-            {sortedProjects.length === 0 ? (
-              <Box sx={{ textAlign: 'center', py: 8 }}>
+            </TableCell>
+            <TableCell>项目名称</TableCell>
+            <TableCell>描述</TableCell>
+            <TableCell>状态</TableCell>
+            <TableCell>创建时间</TableCell>
+            <TableCell>更新时间</TableCell>
+            <TableCell align="center">操作</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {sortedProjects.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={6} align="center" sx={{ py: 8 }}>
                 <Typography variant="h6" color="text.secondary" mb={1}>
                   {searchTerm ? '没有找到匹配的项目' : '暂无项目数据'}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   {searchTerm ? '请尝试调整搜索条件' : '点击"新建项目"开始创建您的第一个项目'}
                 </Typography>
-              </Box>
-            ) : (
-              <Grid container spacing={3}>
-                {sortedProjects.map((project) => (
-                  <Grid item xs={12} sm={6} md={4} lg={3} key={project.id}>
-                    <Card 
-                      sx={{ 
-                        height: '100%',
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          transform: 'translateY(-4px)',
-                          boxShadow: 4
-                        }
-                      }}
-                    >
-                      <CardContent>
-                        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                          <Checkbox
-                            checked={selectedProjects.includes(project.id)}
-                            onChange={() => handleSelectProject(project.id)}
-                          />
-                          <Chip 
-                            label={project.status === 1 ? '进行中' : '已完成'} 
-                            size="small"
-                            color={project.status === 2 ? 'success' : 'primary'}
-                          />
-                        </Stack>
-                        
-                        <Typography variant="h6" fontWeight={600} mb={1} noWrap>
-                          {project.name}
-                        </Typography>
-                        
-                        <Typography variant="body2" color="text.secondary" mb={2} sx={{
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden'
-                        }}>
-                          {project.desc}
-                        </Typography>
-                        
-                        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-                           <Stack direction="row" alignItems="center" spacing={0.5}>
-                             <TimeIcon sx={{ fontSize: '0.875rem' }} color="action" />
-                             <Typography variant="caption" color="text.secondary" display="block">
-                               {project.created_at ? new Date(project.created_at.split('/').join('-')).toLocaleDateString() : '-'}
-                             </Typography>
-                           </Stack>
-                           <Stack direction="row" alignItems="center" spacing={0.5}>
-                            <UpdateIcon sx={{ fontSize: '0.875rem' }} color="action" />
-                             <Typography variant="caption" color="text.secondary" display="block">
-                               {project.updated_at ? new Date(project.updated_at.split('/').join('-')).toLocaleDateString() : '-'}
-                             </Typography>
-                           </Stack>
-                         </Stack>
-                        
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                          <Tooltip title="查看详情">
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleViewDetail(project.id)}
-                              color="primary"
-                            >
-                              <ViewIcon />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="编辑">
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleEdit(project)}
-                              color="info"
-                            >
-                              <EditIcon />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="删除">
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleDelete(project.id)}
-                              color="error"
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            )}
+              </TableCell>
+            </TableRow>
+          ) : (
+            sortedProjects.map((project) => (
+              <TableRow 
+                key={project.id}
+                hover
+                selected={selectedProjects.includes(project.id)}
+              >
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    checked={selectedProjects.includes(project.id)}
+                    onChange={() => handleSelectProject(project.id)}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    {project.name}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" color="text.secondary" noWrap>
+                    {project.desc}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Chip 
+                    label={project.status === 1 ? '进行中' : '已完成'} 
+                    size="small"
+                    color={project.status === 2 ? 'success' : 'primary'}
+                    variant="outlined"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" color="text.secondary">
+                    {project.created_at ? new Date(project.created_at.split('/').join('-')).toLocaleString() : '-'}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" color="text.secondary">
+                    {project.updated_at ? new Date(project.updated_at.split('/').join('-')).toLocaleString() : '-'}
+                  </Typography>
+                </TableCell>
+                <TableCell align="center">
+                  <Stack direction="row" spacing={1} justifyContent="center">
+                    <Tooltip title="查看详情">
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleViewDetail(project.id)}
+                        color="primary"
+                      >
+                        <ViewIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="编辑">
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleEdit(project)}
+                        color="info"
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="删除">
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleDelete(project.id)}
+                        color="error"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+
+  const renderCardView = () => (
+    <Box sx={{ p: 3 }}>
+      {sortedProjects.length === 0 ? (
+        <Box sx={{ textAlign: 'center', py: 8 }}>
+          <Typography variant="h6" color="text.secondary" mb={1}>
+            {searchTerm ? '没有找到匹配的项目' : '暂无项目数据'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {searchTerm ? '请尝试调整搜索条件' : '点击"新建项目"开始创建您的第一个项目'}
+          </Typography>
+        </Box>
+      ) : (
+        <Grid container spacing={3}>
+          {sortedProjects.map((project) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={project.id}>
+              <Card 
+                sx={{ 
+                  height: '100%',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: 4
+                  }
+                }}
+              >
+                <CardContent>
+                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
+                    <Checkbox
+                      checked={selectedProjects.includes(project.id)}
+                      onChange={() => handleSelectProject(project.id)}
+                    />
+                    <Chip 
+                      label={project.status === 1 ? '进行中' : '已完成'} 
+                      size="small"
+                      color={project.status === 2 ? 'success' : 'primary'}
+                    />
+                  </Stack>
+                  
+                  <Typography variant="h6" fontWeight={600} mb={1} noWrap>
+                    {project.name}
+                  </Typography>
+                  
+                  <Typography variant="body2" color="text.secondary" mb={2} sx={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden'
+                  }}>
+                    {project.desc}
+                  </Typography>
+                  
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+                     <Stack direction="row" alignItems="center" spacing={0.5}>
+                       <TimeIcon sx={{ fontSize: '0.875rem' }} color="action" />
+                       <Typography variant="caption" color="text.secondary" display="block">
+                         {project.created_at ? new Date(project.created_at.split('/').join('-')).toLocaleDateString() : '-'}
+                       </Typography>
+                     </Stack>
+                     <Stack direction="row" alignItems="center" spacing={0.5}>
+                      <UpdateIcon sx={{ fontSize: '0.875rem' }} color="action" />
+                       <Typography variant="caption" color="text.secondary" display="block">
+                         {project.updated_at ? new Date(project.updated_at.split('/').join('-')).toLocaleDateString() : '-'}
+                       </Typography>
+                     </Stack>
+                   </Stack>
+                  
+                  <Stack direction="row" spacing={1} justifyContent="flex-end">
+                    <Tooltip title="查看详情">
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleViewDetail(project.id)}
+                        color="primary"
+                      >
+                        <ViewIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="编辑">
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleEdit(project)}
+                        color="info"
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="删除">
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleDelete(project.id)}
+                        color="error"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
+    </Box>
+  );
+
+  const totalPages = Math.ceil(pagination.total / pagination.size);
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
+      {/* Header */}
+      <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Box>
+            <Typography variant="h5" fontWeight="bold">项目管理</Typography>
+            <Typography variant="body2" color="text.secondary">管理您的创意作品和项目</Typography>
           </Box>
+          <Badge badgeContent={pagination.total} color="primary">
+            <Typography variant="h6">项目总数</Typography>
+          </Badge>
+        </Stack>
+      </Paper>
+
+      {/* Toolbar */}
+      <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
+        <Stack spacing={2}>
+          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+            <TextField
+              placeholder="搜索项目"
+              variant="outlined"
+              size="small"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ flexGrow: 1, minWidth: 200 }}
+            />
+            <Tooltip title="筛选">
+              <IconButton onClick={(e) => setFilterAnchorEl(e.currentTarget)}>
+                <FilterIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="排序">
+              <IconButton onClick={(e) => setSortAnchorEl(e.currentTarget)}>
+                <SortIcon />
+              </IconButton>
+            </Tooltip>
+            <Button
+              variant={viewMode === 'table' ? 'contained' : 'outlined'}
+              onClick={() => setViewMode('table')}
+              size="small"
+            >
+              表格
+            </Button>
+            <Button
+              variant={viewMode === 'card' ? 'contained' : 'outlined'}
+              onClick={() => setViewMode('card')}
+              size="small"
+            >
+              卡片
+            </Button>
+            <Box sx={{ flexGrow: 1 }} />
+            <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleOpen}>
+              新建
+            </Button>
+            <Button variant="outlined" startIcon={<RefreshIcon />} onClick={handleRefresh}>
+              刷新
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={handleBatchDelete}
+              disabled={selectedProjects.length === 0}
+            >
+              删除 ({selectedProjects.length})
+            </Button>
+          </Stack>
+          {(searchTerm || filterStatus !== 'all') && (
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Typography variant="body2" color="text.secondary">筛选条件:</Typography>
+              {searchTerm && <Chip label={`搜索: "${searchTerm}"`} onDelete={() => setSearchTerm('')} />}
+              {filterStatus !== 'all' && <Chip label={`状态: ${filterStatus}`} onDelete={() => setFilterStatus('all')} />}
+            </Stack>
+          )}
+        </Stack>
+      </Paper>
+
+      <ErrorDisplay error={errorState.error} />
+
+      <Menu
+        anchorEl={filterAnchorEl}
+        open={Boolean(filterAnchorEl)}
+        onClose={() => setFilterAnchorEl(null)}
+      >
+        <MenuItem onClick={() => { setFilterStatus('all'); setFilterAnchorEl(null); }}>全部</MenuItem>
+        <MenuItem onClick={() => { setFilterStatus('active'); setFilterAnchorEl(null); }}>活跃</MenuItem>
+        <MenuItem onClick={() => { setFilterStatus('completed'); setFilterAnchorEl(null); }}>完成</MenuItem>
+      </Menu>
+
+      <Menu
+        anchorEl={sortAnchorEl}
+        open={Boolean(sortAnchorEl)}
+        onClose={() => setSortAnchorEl(null)}
+      >
+        <MenuItem onClick={() => { setSortBy('name'); setSortAnchorEl(null); }}>按名称</MenuItem>
+        <MenuItem onClick={() => { setSortBy('date'); setSortAnchorEl(null); }}>按日期</MenuItem>
+      </Menu>
+
+      <Paper sx={{ flex: 1, minHeight: 0, borderRadius: 2, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
+          {listLoading ? (
+            <LinearProgress />
+          ) : viewMode === 'table' ? (
+            renderTable()
+          ) : (
+            renderCardView()
+          )}
+        </Box>
+
+        {totalPages > 0 && (
+          <Stack 
+            direction="row" 
+            spacing={2}
+            sx={{ alignItems: 'center', justifyContent: 'center', p: 2, borderTop: '1px solid #e0e0e0' }}
+          >
+            <Pagination
+              count={totalPages}
+              page={pagination.page}
+              onChange={handlePageChange}
+              color="primary"
+              showFirstButton
+              showLastButton
+            />
+            <FormControl sx={{ minWidth: 120 }} size="small">
+              <InputLabel id="rows-per-page-label">每页显示</InputLabel>
+              <Select
+                labelId="rows-per-page-label"
+                value={String(pagination.size)}
+                label="每页显示"
+                onChange={(e) => handleRowsPerPageChange(e)}
+              >
+                <MenuItem value={10}>10</MenuItem>
+                <MenuItem value={20}>20</MenuItem>
+                <MenuItem value={50}>50</MenuItem>
+                <MenuItem value={100}>100</MenuItem>
+              </Select>
+            </FormControl>
+          </Stack>
         )}
       </Paper>
-      
-      {/* 项目表单组件 */}
+
       <ProjectForm
         open={open}
         onClose={handleClose}
@@ -745,32 +728,18 @@ const Projects = () => {
         onClearError={clearError}
       />
 
-      {/* 项目详情组件 */}
-      <ProjectDetail
+      <ProjectDetail 
         open={detailOpen}
         onClose={handleDetailClose}
         project={projectDetail}
         loading={detailLoading}
       />
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
+      
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleSnackbarClose}>
         <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>
-
-      {/* 错误显示组件 */}
-      <ErrorDisplay 
-        error={errorState.error}
-        onClose={clearError}
-        onRetry={fetchProjects}
-        showDetails={false}
-      />
     </Box>
   );
 };
