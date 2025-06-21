@@ -40,7 +40,7 @@ export interface UpdateProjectRequest {
 // 分页请求参数模型
 export interface ProjectListParams {
   page: number;
-  size: number;
+  page_size: number;
   status?: ProjectStatusType;
   keyword?: string;
 }

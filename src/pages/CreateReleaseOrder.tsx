@@ -26,7 +26,7 @@ const CreateReleaseOrder = () => {
     message: '',
     severity: 'success'
   });
-  const pageSize = 10;
+  const [pageSize] = useState<number>(10);
 
   // 获取项目列表
   const fetchProjects = async (page: number = 1, append: boolean = false) => {
@@ -37,20 +37,24 @@ const CreateReleaseOrder = () => {
     }
     
     try {
-      const response = await getProjects({ page, size: pageSize });
-      if (response.data?.data?.list) {
-        const newProjects = response.data.data.list;
-        if (append) {
-          setProjects(prev => [...prev, ...newProjects]);
-        } else {
-          setProjects(newProjects);
+      const response = await getProjects({ page, page_size: pageSize });
+      if (response.data?.code === ErrorCode.SUCCESS || response.data?.code === 1) {
+        if (response.data?.data?.list) {
+          const newProjects = response.data.data.list;
+          if (append) {
+            setProjects(prev => [...prev, ...newProjects]);
+          } else {
+            setProjects(newProjects);
+          }
+          
+          // 检查是否还有更多数据
+          const total = response.data.data.total || 0;
+          const currentTotal = append ? projects.length + newProjects.length : newProjects.length;
+          setHasMore(currentTotal < total);
+          console.log(`加载第${page}页，共${newProjects.length}个项目，总计${currentTotal}/${total}`);
         }
-        
-        // 检查是否还有更多数据
-        const total = response.data.data.total || 0;
-        const currentTotal = append ? projects.length + newProjects.length : newProjects.length;
-        setHasMore(currentTotal < total);
-        console.log(`加载第${page}页，共${newProjects.length}个项目，总计${currentTotal}/${total}`);
+      } else {
+        console.error('获取项目列表失败:', response.data?.msg);
       }
     } catch (error) {
       console.error('获取项目列表失败:', error);
@@ -110,7 +114,7 @@ const CreateReleaseOrder = () => {
       };
 
       const response = await createReleaseOrder(requestData);
-      if (response.data?.code === ErrorCode.SUCCESS) {
+      if (response.data?.code === ErrorCode.SUCCESS || response.data?.code === 1) {
         setSnackbar({
           open: true,
           message: '发布单创建成功！',
@@ -158,7 +162,7 @@ const CreateReleaseOrder = () => {
       };
 
       const response = await createReleaseOrder(requestData);
-      if (response.data?.code === ErrorCode.SUCCESS) {
+      if (response.data?.code === ErrorCode.SUCCESS || response.data?.code === 1) {
         setSnackbar({
           open: true,
           message: '草稿保存成功！',

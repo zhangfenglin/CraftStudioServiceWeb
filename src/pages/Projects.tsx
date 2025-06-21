@@ -88,7 +88,7 @@ const Projects = () => {
     clearError(); // 清除之前的错误
     
     try {
-      const response = await getProjects({ page, size });
+      const response = await getProjects({ page, page_size: size });
       if (response.data.code === ErrorCode.SUCCESS || response.data.code === 1) {
         setProjects(response.data.data.list);
         setPagination(prev => ({

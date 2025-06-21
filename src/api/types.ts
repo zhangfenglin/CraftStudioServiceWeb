@@ -17,7 +17,7 @@ export interface PaginatedResponse<T> {
 // 分页请求参数
 export interface PaginationParams {
   page: number;
-  size: number;
+  page_size: number;
 }
 
 // 排序参数

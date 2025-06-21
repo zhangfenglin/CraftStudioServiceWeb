@@ -50,5 +50,5 @@ export const reviewReleaseOrder = (id: string, approved: boolean, comment?: stri
 
 // 执行发布
 export const executeRelease = (id: string) => {
-  return request.post<ApiResponse<void>>(`/api/v1/release/order/${id}/execute`);
+  return request.post<ApiResponse<void>>(`/release/order/${id}/execute`);
 }; 
