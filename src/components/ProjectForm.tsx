@@ -13,7 +13,8 @@ import {
   Chip,
   LinearProgress,
   Alert,
-  Collapse
+  Collapse,
+  DialogTitle
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -132,6 +133,7 @@ const ProjectForm = ({
       onClose={handleClose} 
       maxWidth="sm" 
       fullWidth
+      scroll="paper"
       PaperProps={{
         sx: {
           borderRadius: 3,
@@ -171,7 +173,7 @@ const ProjectForm = ({
       </Collapse>
       
       {/* 自定义标题栏 */}
-      <Box sx={{
+      <DialogTitle sx={{
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         color: 'white',
         p: 3,
@@ -211,10 +213,10 @@ const ProjectForm = ({
         >
           <CloseIcon />
         </IconButton>
-      </Box>
+      </DialogTitle>
 
-      <form onSubmit={handleSubmit}>
-        <DialogContent sx={{ p: 4, pb: 2 }}>
+      <DialogContent sx={{ p: 4, pt: 2 }}>
+        <form id="project-form" onSubmit={handleSubmit}>
           <Paper elevation={0} sx={{ 
             p: 3, 
             borderRadius: 3, 
@@ -335,64 +337,64 @@ const ProjectForm = ({
               </Paper>
             </Stack>
           </Paper>
-        </DialogContent>
+        </form>
+      </DialogContent>
 
-        {/* 操作按钮 */}
-        <DialogActions sx={{ 
-          p: 3, 
-          pt: 1,
-          background: 'rgba(255,255,255,0.5)',
-          backdropFilter: 'blur(10px)'
-        }}>
-          <Button 
-            onClick={handleClose} 
-            disabled={loading}
-            variant="outlined"
-            sx={{
-              borderRadius: 2,
-              px: 3,
-              py: 1,
-              borderColor: '#e0e3e7',
-              color: '#666',
-              '&:hover': {
-                borderColor: '#999',
-                background: 'rgba(0,0,0,0.04)'
-              }
-            }}
-          >
-            取消
-          </Button>
-          <Button 
-            type="submit" 
-            variant="contained" 
-            disabled={loading || !form.name.trim()}
-            startIcon={isEdit ? <EditIcon /> : <AddIcon />}
-            sx={{
-              borderRadius: 2,
-              px: 4,
-              py: 1,
-              background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
-              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #5a6fd8 30%, #6a4190 90%)',
-                boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
-                transform: 'translateY(-1px)'
-              },
-              '&:disabled': {
-                background: '#ccc',
-                boxShadow: 'none',
-                transform: 'none'
-              },
-              transition: 'all 0.3s ease'
-            }}
-          >
-            {loading 
-              ? (isEdit ? '更新中...' : '创建中...') 
-              : (isEdit ? '更新项目' : '创建项目')
+      {/* 操作按钮 */}
+      <DialogActions sx={{ 
+        p: 3,
+        background: 'rgba(255,255,255,0.5)',
+        backdropFilter: 'blur(10px)'
+      }}>
+        <Button 
+          onClick={handleClose} 
+          disabled={loading}
+          variant="outlined"
+          sx={{
+            borderRadius: 2,
+            px: 3,
+            py: 1,
+            borderColor: '#e0e3e7',
+            color: '#666',
+            '&:hover': {
+              borderColor: '#999',
+              background: 'rgba(0,0,0,0.04)'
             }
-          </Button>
-        </DialogActions>
-      </form>
+          }}
+        >
+          取消
+        </Button>
+        <Button 
+          type="submit" 
+          form="project-form"
+          variant="contained" 
+          disabled={loading || !form.name.trim()}
+          startIcon={isEdit ? <EditIcon /> : <AddIcon />}
+          sx={{
+            borderRadius: 2,
+            px: 4,
+            py: 1,
+            background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
+            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+            '&:hover': {
+              background: 'linear-gradient(45deg, #5a6fd8 30%, #6a4190 90%)',
+              boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
+              transform: 'translateY(-1px)'
+            },
+            '&:disabled': {
+              background: '#ccc',
+              boxShadow: 'none',
+              transform: 'none'
+            },
+            transition: 'all 0.3s ease'
+          }}
+        >
+          {loading 
+            ? (isEdit ? '更新中...' : '创建中...') 
+            : (isEdit ? '更新项目' : '创建项目')
+          }
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 };

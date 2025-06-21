@@ -352,28 +352,28 @@ const Projects = () => {
 
   const renderTable = () => (
     <TableContainer>
-      <Table stickyHeader>
+      <Table stickyHeader sx={{ tableLayout: 'fixed' }}>
         <TableHead>
           <TableRow>
-            <TableCell padding="checkbox">
+            <TableCell padding="checkbox" sx={{ width: '5%' }}>
               <Checkbox
                 indeterminate={selectedProjects.length > 0 && selectedProjects.length < sortedProjects.length}
                 checked={selectedProjects.length > 0 && selectedProjects.length === sortedProjects.length}
                 onChange={handleSelectAll}
               />
             </TableCell>
-            <TableCell>项目名称</TableCell>
-            <TableCell>描述</TableCell>
-            <TableCell>状态</TableCell>
-            <TableCell>创建时间</TableCell>
-            <TableCell>更新时间</TableCell>
-            <TableCell align="center">操作</TableCell>
+            <TableCell sx={{ width: '25%' }}>项目名称</TableCell>
+            <TableCell sx={{ width: '20%' }}>描述</TableCell>
+            <TableCell sx={{ width: '10%' }}>状态</TableCell>
+            <TableCell sx={{ width: '15%' }}>创建时间</TableCell>
+            <TableCell sx={{ width: '15%' }}>更新时间</TableCell>
+            <TableCell align="center" sx={{ width: '10%' }}>操作</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {sortedProjects.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} align="center" sx={{ py: 8 }}>
+              <TableCell colSpan={7} align="center" sx={{ py: 8 }}>
                 <Typography variant="h6" color="text.secondary" mb={1}>
                   {searchTerm ? '没有找到匹配的项目' : '暂无项目数据'}
                 </Typography>
@@ -396,14 +396,18 @@ const Projects = () => {
                   />
                 </TableCell>
                 <TableCell>
-                  <Typography variant="subtitle2" fontWeight={600}>
-                    {project.name}
-                  </Typography>
+                  <Tooltip title={project.name} arrow>
+                    <Typography variant="subtitle2" fontWeight={600} noWrap>
+                      {project.name}
+                    </Typography>
+                  </Tooltip>
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2" color="text.secondary" noWrap>
-                    {project.desc}
-                  </Typography>
+                  <Tooltip title={project.desc} arrow>
+                    <Typography variant="body2" color="text.secondary" noWrap>
+                      {project.desc}
+                    </Typography>
+                  </Tooltip>
                 </TableCell>
                 <TableCell>
                   <Chip 

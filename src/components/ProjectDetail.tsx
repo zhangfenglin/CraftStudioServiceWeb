@@ -8,6 +8,23 @@ interface ProjectDetailProps {
   loading: boolean;
 }
 
+// 格式化时间的辅助函数
+const formatDateTime = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  } catch {
+    return '未知时间';
+  }
+};
+
 const ProjectDetail = ({ open, onClose, project, loading }: ProjectDetailProps) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -111,7 +128,7 @@ const ProjectDetail = ({ open, onClose, project, loading }: ProjectDetailProps) 
                     创建时间
                   </Typography>
                   <Typography variant="body2" fontWeight={600}>
-                    2024-01-01
+                    {formatDateTime(project.created_at)}
                   </Typography>
                 </Box>
                 <Box>
@@ -119,7 +136,7 @@ const ProjectDetail = ({ open, onClose, project, loading }: ProjectDetailProps) 
                     最后更新
                   </Typography>
                   <Typography variant="body2" fontWeight={600}>
-                    2024-01-01
+                    {formatDateTime(project.updated_at)}
                   </Typography>
                 </Box>
               </Stack>
