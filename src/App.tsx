@@ -1,10 +1,10 @@
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Layout from './components/Layout';
+import Layout from './components/Layout/Layout';
 import Home from './pages/Home';
 import Projects from './pages/Projects';
-import ReleaseOrders from './pages/ReleaseOrders';
 import CreateReleaseOrder from './pages/CreateReleaseOrder';
+import ReleaseOrders from './pages/ReleaseOrders';
 
 const theme = createTheme({
   palette: {
@@ -18,7 +18,7 @@ const theme = createTheme({
   },
 });
 
-function App() {
+const App = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -34,6 +34,6 @@ function App() {
       </Router>
     </ThemeProvider>
   );
-}
+};
 
 export default App;

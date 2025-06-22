@@ -8,8 +8,8 @@ import {
   Typography 
 } from '@mui/material';
 import { Close as CloseIcon, Refresh as RefreshIcon } from '@mui/icons-material';
-import type { ApiError } from '../api/errorCodes';
-import { ErrorHandler } from '../api/errorCodes';
+import type { ApiError } from '../../api/errorCodes';
+import { ErrorHandler } from '../../api/errorCodes';
 
 // 错误显示组件的属性
 export interface ErrorDisplayProps {

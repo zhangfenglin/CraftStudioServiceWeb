@@ -24,9 +24,9 @@ import {
   Title as TitleIcon,
   Error as ErrorIcon
 } from '@mui/icons-material';
-import type { Project } from '../api/project.define';
-import { ErrorCode } from '../api/errorCodes';
-import type { ApiError, ErrorCodeType } from '../api/errorCodes';
+import type { Project } from '../../api/project.define';
+import { ErrorCode } from '../../api/errorCodes';
+import type { ApiError, ErrorCodeType } from '../../api/errorCodes';
 
 interface ProjectFormProps {
   open: boolean;
