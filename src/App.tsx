@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Projects from './pages/Projects';
 import CreateReleaseOrder from './pages/CreateReleaseOrder';
 import ReleaseOrders from './pages/ReleaseOrders';
+import Workflows from './pages/Workflows';
 
 const theme = createTheme({
   palette: {
@@ -29,6 +30,7 @@ const App = () => {
             <Route path="/projects" element={<Projects />} />
             <Route path="/release-orders" element={<ReleaseOrders />} />
             <Route path="/release-orders/create" element={<CreateReleaseOrder />} />
+            <Route path="/workflows" element={<Workflows />} />
           </Routes>
         </Layout>
       </Router>

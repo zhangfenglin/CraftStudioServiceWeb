@@ -40,19 +40,15 @@ import {
   Update as UpdateIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { getReleaseOrders } from '../api/release-orders';
-import { getProjects } from '../api/projects';
-import type { ReleaseOrder, ReleaseOrderStatusType } from '../api/release-order.define';
-import type { Project } from '../api/project.define';
-import { ReleaseOrderStatus } from '../api/release-order.define';
+import { getWorkflows } from '../api/workflows';
+import type { Workflow } from '../api/workflow.define';
 import { ErrorCode } from '../api/errorCodes';
 
-const ReleaseOrders: React.FC = () => {
+const Workflows: React.FC = () => {
   const navigate = useNavigate();
   
   // 状态管理
-  const [releaseOrders, setReleaseOrders] = useState<ReleaseOrder[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [total, setTotal] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -61,115 +57,91 @@ const ReleaseOrders: React.FC = () => {
   // 筛选条件
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
-  const [projectFilter, setProjectFilter] = useState<string>('');
 
   // 新增功能状态
-  const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
+  const [selectedWorkflows, setSelectedWorkflows] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
 
-  // 获取发布单列表
-  const fetchReleaseOrders = async () => {
+  // 获取工作流列表
+  const fetchWorkflows = async () => {
     setLoading(true);
     try {
       const params = {
         page: currentPage,
         page_size: pageSize,
         query: searchKeyword || undefined,
-        status: statusFilter === '' ? undefined : parseInt(statusFilter, 10) as ReleaseOrderStatusType,
-        project_id: projectFilter || undefined
+        status: statusFilter === '' ? undefined : statusFilter as 'draft' | 'active' | 'inactive'
       };
 
-      const response = await getReleaseOrders(params);
+      const response = await getWorkflows(params);
       if (response.data?.code === ErrorCode.SUCCESS || response.data?.code === 1) {
-        setReleaseOrders(response.data.data.list || []);
+        setWorkflows(response.data.data.list || []);
         setTotal(response.data.data.total || 0);
       } else {
-        console.error('获取发布单列表失败:', response.data?.msg);
+        console.error('获取工作流列表失败:', response.data?.msg);
       }
     } catch (error) {
-      console.error('获取发布单列表失败:', error);
+      console.error('获取工作流列表失败:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // 获取项目列表
-  const fetchProjects = async () => {
-    try {
-      const response = await getProjects({ page: 1, page_size: 100 });
-      if (response.data?.code === ErrorCode.SUCCESS || response.data?.code === 1) {
-        setProjects(response.data.data.list || []);
-      }
-    } catch (error) {
-      console.error('获取项目列表失败:', error);
-    }
-  };
-
   // 初始化数据
   useEffect(() => {
-    fetchReleaseOrders();
-    fetchProjects();
-  }, [currentPage, searchKeyword, statusFilter, projectFilter]);
+    fetchWorkflows();
+  }, [currentPage, searchKeyword, statusFilter]);
 
   // 刷新数据
   const handleRefresh = () => {
-    fetchReleaseOrders();
+    fetchWorkflows();
   };
 
   // 处理搜索
   const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       setCurrentPage(1);
-      fetchReleaseOrders();
+      fetchWorkflows();
     }
   };
 
   // 处理筛选
   const handleFilterChange = () => {
     setCurrentPage(1);
-    fetchReleaseOrders();
+    fetchWorkflows();
   };
 
   // 批量选择相关函数
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      setSelectedOrders(releaseOrders.map(order => order.id.toString()));
+      setSelectedWorkflows(workflows.map(workflow => workflow.id));
     } else {
-      setSelectedOrders([]);
+      setSelectedWorkflows([]);
     }
   };
 
-  const handleSelectOrder = (id: number) => {
-    const idStr = id.toString();
-    setSelectedOrders(prev => 
-      prev.includes(idStr) 
-        ? prev.filter(item => item !== idStr)
-        : [...prev, idStr]
+  const handleSelectWorkflow = (id: string) => {
+    setSelectedWorkflows(prev => 
+      prev.includes(id) 
+        ? prev.filter(item => item !== id)
+        : [...prev, id]
     );
   };
 
   const handleBatchDelete = () => {
     // TODO: 实现批量删除功能
-    console.log('批量删除发布单:', selectedOrders);
+    console.log('批量删除工作流:', selectedWorkflows);
   };
 
   // 获取状态显示文本和颜色
-  const getStatusInfo = (status: ReleaseOrderStatusType) => {
+  const getStatusInfo = (status: 'draft' | 'active' | 'inactive') => {
     switch (status) {
-      case ReleaseOrderStatus.DRAFT:
+      case 'draft':
         return { text: '草稿', color: 'default' as const };
-      case ReleaseOrderStatus.PENDING:
-        return { text: '待审核', color: 'warning' as const };
-      case ReleaseOrderStatus.APPROVED:
-        return { text: '已审核', color: 'info' as const };
-      case ReleaseOrderStatus.REJECTED:
-        return { text: '已拒绝', color: 'error' as const };
-      case ReleaseOrderStatus.RELEASING:
-        return { text: '发布中', color: 'primary' as const };
-      case ReleaseOrderStatus.RELEASED:
-        return { text: '已发布', color: 'success' as const };
-      case ReleaseOrderStatus.FAILED:
-        return { text: '发布失败', color: 'error' as const };
+      case 'active':
+        return { text: '活跃', color: 'success' as const };
+      case 'inactive':
+        return { text: '停用', color: 'error' as const };
       default:
         return { text: '未知', color: 'default' as const };
     }
@@ -186,20 +158,20 @@ const ReleaseOrders: React.FC = () => {
   };
 
   const handleCreate = () => {
-    navigate('/release-orders/create');
+    navigate('/workflows/create');
   };
 
-  const handleView = (id: number) => {
-    navigate(`/release-orders/${id}`);
+  const handleView = (id: string) => {
+    navigate(`/workflows/${id}`);
   };
 
-  const handleEdit = (id: number) => {
-    navigate(`/release-orders/${id}/edit`);
+  const handleEdit = (id: string) => {
+    navigate(`/workflows/${id}/edit`);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     // TODO: 实现删除功能
-    console.log('删除发布单:', id);
+    console.log('删除工作流:', id);
   };
 
   // 渲染表格视图
@@ -220,46 +192,46 @@ const ReleaseOrders: React.FC = () => {
           >
             <TableCell padding="checkbox" sx={{ width: '5%' }}>
               <Checkbox
-                indeterminate={selectedOrders.length > 0 && selectedOrders.length < releaseOrders.length}
-                checked={selectedOrders.length > 0 && selectedOrders.length === releaseOrders.length}
+                indeterminate={selectedWorkflows.length > 0 && selectedWorkflows.length < workflows.length}
+                checked={selectedWorkflows.length > 0 && selectedWorkflows.length === workflows.length}
                 onChange={handleSelectAll}
                 color="primary"
               />
             </TableCell>
-            <TableCell sx={{ width: '20%' }}>发布单名称</TableCell>
-            <TableCell sx={{ width: '15%' }}>项目名称</TableCell>
+            <TableCell sx={{ width: '20%' }}>工作流名称</TableCell>
+            <TableCell sx={{ width: '20%' }}>描述</TableCell>
             <TableCell sx={{ width: '10%' }}>状态</TableCell>
             <TableCell sx={{ width: '15%' }}>创建时间</TableCell>
             <TableCell sx={{ width: '15%' }}>更新时间</TableCell>
-            <TableCell align="center" sx={{ width: '10%' }}>操作</TableCell>
+            <TableCell align="center" sx={{ width: '25%' }}>操作</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {loading ? (
             <TableRow>
-              <TableCell colSpan={7} align="center" sx={{ py: 8, border: 0 }}>
+              <TableCell colSpan={8} align="center" sx={{ py: 8, border: 0 }}>
                 <CircularProgress />
               </TableCell>
             </TableRow>
-          ) : releaseOrders.length === 0 ? (
+          ) : workflows.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} align="center" sx={{ py: 8, border: 0 }}>
+              <TableCell colSpan={8} align="center" sx={{ py: 8, border: 0 }}>
                 <Typography variant="h6" color="text.secondary">
-                  暂无发布单
+                  暂无工作流
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  点击"新建发布单"开始创建
+                  点击"新建工作流"开始创建
                 </Typography>
               </TableCell>
             </TableRow>
           ) : (
-            releaseOrders.map((order) => {
-              const statusInfo = getStatusInfo(order.status);
+            workflows.map((workflow) => {
+              const statusInfo = getStatusInfo(workflow.status);
               return (
                 <TableRow 
-                  key={order.id} 
+                  key={workflow.id} 
                   hover
-                  selected={selectedOrders.includes(order.id.toString())}
+                  selected={selectedWorkflows.includes(workflow.id)}
                   sx={{
                     '&.Mui-selected': {
                       backgroundColor: 'action.selected',
@@ -271,24 +243,19 @@ const ReleaseOrders: React.FC = () => {
                 >
                   <TableCell padding="checkbox">
                     <Checkbox
-                      checked={selectedOrders.includes(order.id.toString())}
-                      onChange={() => handleSelectOrder(order.id)}
+                      checked={selectedWorkflows.includes(workflow.id)}
+                      onChange={() => handleSelectWorkflow(workflow.id)}
                       color="primary"
                     />
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" fontWeight="medium">
-                      {order.name}
+                      {workflow.name}
                     </Typography>
-                    {order.desc && (
-                      <Typography variant="caption" color="text.secondary">
-                        {order.desc}
-                      </Typography>
-                    )}
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2">
-                      {order.project_info?.name || '未知项目'}
+                    <Typography variant="body2" color="text.secondary">
+                      {workflow.description || '-'}
                     </Typography>
                   </TableCell>
                   <TableCell>
@@ -300,28 +267,33 @@ const ReleaseOrders: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2">
-                      {formatTime(order.created_at)}
+                      {workflow.nodes.length}
                     </Typography>
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2">
-                      {formatTime(order.updated_at)}
+                      {formatTime(workflow.createdAt)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">
+                      {formatTime(workflow.updatedAt)}
                     </Typography>
                   </TableCell>
                   <TableCell align="center">
                     <Stack direction="row" spacing={1} justifyContent="center">
                       <Tooltip title="查看">
-                        <IconButton size="small" onClick={() => handleView(order.id)}>
+                        <IconButton size="small" onClick={() => handleView(workflow.id)}>
                           <ViewIcon />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="编辑">
-                        <IconButton size="small" onClick={() => handleEdit(order.id)}>
+                        <IconButton size="small" onClick={() => handleEdit(workflow.id)}>
                           <EditIcon />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="删除">
-                        <IconButton size="small" onClick={() => handleDelete(order.id)}>
+                        <IconButton size="small" onClick={() => handleDelete(workflow.id)}>
                           <DeleteIcon />
                         </IconButton>
                       </Tooltip>
@@ -343,21 +315,21 @@ const ReleaseOrders: React.FC = () => {
         <Box sx={{ textAlign: 'center', py: 8 }}>
           <CircularProgress />
         </Box>
-      ) : releaseOrders.length === 0 ? (
+      ) : workflows.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 8 }}>
           <Typography variant="h6" color="text.secondary" mb={1}>
-            暂无发布单
+            暂无工作流
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            点击"新建发布单"开始创建
+            点击"新建工作流"开始创建
           </Typography>
         </Box>
       ) : (
         <Grid container spacing={3}>
-          {releaseOrders.map((order) => {
-            const statusInfo = getStatusInfo(order.status);
+          {workflows.map((workflow) => {
+            const statusInfo = getStatusInfo(workflow.status);
             return (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={order.id}>
+              <Grid item xs={12} sm={6} md={4} lg={3} key={workflow.id}>
                 <Card 
                   sx={{ 
                     height: '100%',
@@ -371,7 +343,7 @@ const ReleaseOrders: React.FC = () => {
                       boxShadow: 3,
                       borderColor: 'primary.main',
                     },
-                    ...(selectedOrders.includes(order.id.toString()) && {
+                    ...(selectedWorkflows.includes(workflow.id) && {
                       boxShadow: 3,
                       borderColor: 'primary.main',
                     })
@@ -380,8 +352,8 @@ const ReleaseOrders: React.FC = () => {
                   <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
                       <Checkbox
-                        checked={selectedOrders.includes(order.id.toString())}
-                        onChange={() => handleSelectOrder(order.id)}
+                        checked={selectedWorkflows.includes(workflow.id)}
+                        onChange={() => handleSelectWorkflow(workflow.id)}
                         color="primary"
                         sx={{ p: 0, m: 1 }}
                       />
@@ -393,10 +365,10 @@ const ReleaseOrders: React.FC = () => {
                     </Stack>
                     
                     <Typography variant="h6" fontWeight={600} mb={1} noWrap>
-                      {order.name}
+                      {workflow.name}
                     </Typography>
                     
-                    {order.desc && (
+                    {workflow.description && (
                       <Typography variant="body2" color="text.secondary" mb={2} sx={{
                         flexGrow: 1,
                         display: '-webkit-box',
@@ -404,25 +376,25 @@ const ReleaseOrders: React.FC = () => {
                         WebkitBoxOrient: 'vertical',
                         overflow: 'hidden'
                       }}>
-                        {order.desc}
+                        {workflow.description}
                       </Typography>
                     )}
                     
                     <Typography variant="body2" color="text.secondary" mb={2}>
-                      项目: {order.project_info?.name || '未知项目'}
+                      节点数: {workflow.nodes.length}
                     </Typography>
                     
                     <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
                       <Stack direction="row" alignItems="center" spacing={0.5}>
                         <TimeIcon sx={{ fontSize: '0.875rem' }} color="action" />
                         <Typography variant="caption" color="text.secondary">
-                          {formatTime(order.created_at).split(' ')[0]}
+                          {formatTime(workflow.createdAt).split(' ')[0]}
                         </Typography>
                       </Stack>
                       <Stack direction="row" alignItems="center" spacing={0.5}>
                         <UpdateIcon sx={{ fontSize: '0.875rem' }} color="action" />
                         <Typography variant="caption" color="text.secondary">
-                          {formatTime(order.updated_at).split(' ')[0]}
+                          {formatTime(workflow.updatedAt).split(' ')[0]}
                         </Typography>
                       </Stack>
                     </Stack>
@@ -431,7 +403,7 @@ const ReleaseOrders: React.FC = () => {
                       <Tooltip title="查看">
                         <IconButton 
                           size="small" 
-                          onClick={() => handleView(order.id)}
+                          onClick={() => handleView(workflow.id)}
                           color="default"
                         >
                           <ViewIcon />
@@ -440,7 +412,7 @@ const ReleaseOrders: React.FC = () => {
                       <Tooltip title="编辑">
                         <IconButton 
                           size="small" 
-                          onClick={() => handleEdit(order.id)}
+                          onClick={() => handleEdit(workflow.id)}
                           color="primary"
                         >
                           <EditIcon />
@@ -449,7 +421,7 @@ const ReleaseOrders: React.FC = () => {
                       <Tooltip title="删除">
                         <IconButton 
                           size="small" 
-                          onClick={() => handleDelete(order.id)}
+                          onClick={() => handleDelete(workflow.id)}
                           color="error"
                         >
                           <DeleteIcon />
@@ -472,11 +444,11 @@ const ReleaseOrders: React.FC = () => {
       <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Box>
-            <Typography variant="h5" fontWeight="bold">发布单管理</Typography>
-            <Typography variant="body2" color="text.secondary">管理您的所有发布请求和记录</Typography>
+            <Typography variant="h5" fontWeight="bold">工作流管理</Typography>
+            <Typography variant="body2" color="text.secondary">管理您的业务流程和工作流</Typography>
           </Box>
           <Badge badgeContent={total} color="primary">
-            <Typography variant="h6">发布单总数</Typography>
+            <Typography variant="h6">工作流总数</Typography>
           </Badge>
         </Stack>
       </Paper>
@@ -486,7 +458,7 @@ const ReleaseOrders: React.FC = () => {
         <Stack spacing={2}>
           <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
             <TextField
-              placeholder="搜索发布单名称..."
+              placeholder="搜索工作流名称..."
               variant="outlined"
               size="small"
               value={searchKeyword}
@@ -507,37 +479,14 @@ const ReleaseOrders: React.FC = () => {
                 label="状态" 
                 value={statusFilter}
                 onChange={(e) => {
-                  const value = e.target.value;
-                  setStatusFilter(value === '' ? '' : value);
+                  setStatusFilter(e.target.value);
                   handleFilterChange();
                 }}
               >
                 <MenuItem value="">全部</MenuItem>
-                <MenuItem value={ReleaseOrderStatus.DRAFT}>草稿</MenuItem>
-                <MenuItem value={ReleaseOrderStatus.PENDING}>待审核</MenuItem>
-                <MenuItem value={ReleaseOrderStatus.APPROVED}>已审核</MenuItem>
-                <MenuItem value={ReleaseOrderStatus.REJECTED}>已拒绝</MenuItem>
-                <MenuItem value={ReleaseOrderStatus.RELEASING}>发布中</MenuItem>
-                <MenuItem value={ReleaseOrderStatus.RELEASED}>已发布</MenuItem>
-                <MenuItem value={ReleaseOrderStatus.FAILED}>发布失败</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl size="small" sx={{ minWidth: 150 }}>
-              <InputLabel>项目</InputLabel>
-              <Select 
-                label="项目" 
-                value={projectFilter}
-                onChange={(e) => {
-                  setProjectFilter(e.target.value);
-                  handleFilterChange();
-                }}
-              >
-                <MenuItem value="">全部项目</MenuItem>
-                {projects.map((project) => (
-                  <MenuItem key={project.id} value={project.id}>
-                    {project.name}
-                  </MenuItem>
-                ))}
+                <MenuItem value="draft">草稿</MenuItem>
+                <MenuItem value="active">活跃</MenuItem>
+                <MenuItem value="inactive">停用</MenuItem>
               </Select>
             </FormControl>
             <Button
@@ -556,7 +505,7 @@ const ReleaseOrders: React.FC = () => {
             </Button>
             <Box sx={{ flexGrow: 1 }} />
             <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreate}>
-              新建发布单
+              新建工作流
             </Button>
             <Button variant="outlined" startIcon={<RefreshIcon />} onClick={handleRefresh}>
               刷新
@@ -566,17 +515,16 @@ const ReleaseOrders: React.FC = () => {
               color="error"
               startIcon={<DeleteIcon />}
               onClick={handleBatchDelete}
-              disabled={selectedOrders.length === 0}
+              disabled={selectedWorkflows.length === 0}
             >
-              删除 ({selectedOrders.length})
+              删除 ({selectedWorkflows.length})
             </Button>
           </Stack>
-          {(searchKeyword || statusFilter || projectFilter) && (
+          {(searchKeyword || statusFilter) && (
             <Stack direction="row" spacing={1} alignItems="center">
               <Typography variant="body2" color="text.secondary">筛选条件:</Typography>
               {searchKeyword && <Chip label={`搜索: "${searchKeyword}"`} onDelete={() => setSearchKeyword('')} />}
-              {statusFilter && <Chip label={`状态: ${getStatusInfo(parseInt(statusFilter, 10) as ReleaseOrderStatusType).text}`} onDelete={() => setStatusFilter('')} />}
-              {projectFilter && <Chip label={`项目: ${projects.find(p => p.id === projectFilter)?.name || projectFilter}`} onDelete={() => setProjectFilter('')} />}
+              {statusFilter && <Chip label={`状态: ${getStatusInfo(statusFilter as 'draft' | 'active' | 'inactive').text}`} onDelete={() => setStatusFilter('')} />}
             </Stack>
           )}
         </Stack>
@@ -610,4 +558,4 @@ const ReleaseOrders: React.FC = () => {
   );
 };
 
-export default ReleaseOrders; 
+export default Workflows; 
