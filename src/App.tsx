@@ -7,6 +7,7 @@ import CreateReleaseOrder from './pages/CreateReleaseOrder';
 import ReleaseOrders from './pages/ReleaseOrders';
 import Workflows from './pages/Workflows';
 import CreateWorkflow from './pages/CreateWorkflow';
+import NovelCreation from './pages/NovelCreation';
 
 const theme = createTheme({
   palette: {
@@ -33,6 +34,7 @@ const App = () => {
             <Route path="/release-orders/create" element={<CreateReleaseOrder />} />
             <Route path="/workflows" element={<Workflows />} />
             <Route path="/workflows/create" element={<CreateWorkflow />} />
+            <Route path="/novel-creation" element={<NovelCreation />} />
           </Routes>
         </Layout>
       </Router>

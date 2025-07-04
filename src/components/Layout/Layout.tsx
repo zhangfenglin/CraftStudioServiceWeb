@@ -28,6 +28,7 @@ import {
   FeedbackOutlined as FeedbackOutlinedIcon,
   Assignment as AssignmentIcon,
   AccountTree as AccountTreeIcon,
+  Create as CreateIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.svg';
@@ -39,6 +40,7 @@ const menuItems = [
   { text: '项目管理', icon: <BookIcon />, path: '/projects' },
   { text: '发布单管理', icon: <AssignmentIcon />, path: '/release-orders' },
   { text: '工作流管理', icon: <AccountTreeIcon />, path: '/workflows' },
+  { text: '小说创作', icon: <CreateIcon />, path: '/novel-creation' },
   { text: '灵感广场', icon: <LightbulbIcon />, path: '/inspiration' },
   { text: 'AI拆节', icon: <AutoStoriesIcon />, path: '/ai-chapter' },
   { text: '收益分析', icon: <BarChartIcon />, path: '/income' },
