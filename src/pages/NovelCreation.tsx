@@ -6,15 +6,22 @@ import {
   Stack,
   Card,
   CardContent,
-  Grid
+  Grid,
 } from '@mui/material';
 import {
   Create as CreateIcon,
   Book as BookIcon,
   AutoStories as AutoStoriesIcon
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 const NovelCreation: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleMyWorks = () => {
+    navigate('/novel-creation/works');
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
       {/* Header */}
@@ -58,11 +65,26 @@ const NovelCreation: React.FC = () => {
               </Card>
             </Grid>
             <Grid item xs={12} sm={6} md={4}>
-              <Card sx={{ height: '100%', textAlign: 'center' }}>
+              <Card
+                sx={{
+                  height: '100%',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'box-shadow 0.2s, border-color 0.2s',
+                  '&:hover': {
+                    boxShadow: 6,
+                    borderColor: 'primary.main',
+                  },
+                }}
+                onClick={handleMyWorks}
+                tabIndex={0}
+                role="button"
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handleMyWorks(); }}
+              >
                 <CardContent>
                   <BookIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
                   <Typography variant="h6" mb={1}>我的作品</Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" mb={2}>
                     查看和管理您的小说作品
                   </Typography>
                 </CardContent>
