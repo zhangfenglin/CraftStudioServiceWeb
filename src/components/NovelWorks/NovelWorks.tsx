@@ -54,8 +54,10 @@ import type { Novel, NovelListParams } from '../../api/novel.define';
 import { NovelStatus } from '../../api/novel.define';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 import { ErrorDisplay } from '../ErrorDisplay';
+import { useNavigate } from 'react-router-dom';
 
 const NovelWorks: React.FC = () => {
+  const navigate = useNavigate();
   // 状态管理
   const [novels, setNovels] = useState<Novel[]>([]);
   const [loading, setLoading] = useState(false);
@@ -543,7 +545,7 @@ const NovelWorks: React.FC = () => {
               卡片
             </Button>
             <Box sx={{ flexGrow: 1 }} />
-            <Button variant="contained" color="primary" startIcon={<AddIcon />}>
+            <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={() => navigate('/novels/create')}>
               新建小说
             </Button>
             <Button variant="outlined" startIcon={<RefreshIcon />} onClick={fetchNovels}>

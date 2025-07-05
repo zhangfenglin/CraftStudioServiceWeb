@@ -106,8 +106,7 @@ const NovelCreation: React.FC = () => {
   };
 
   const handleCreateNovel = () => {
-    // 处理新建小说逻辑
-    console.log('创建新小说');
+    navigate('/novels/create');
   };
 
   const handleAIAssistant = () => {
