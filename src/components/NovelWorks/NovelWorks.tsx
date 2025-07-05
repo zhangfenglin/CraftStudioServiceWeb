@@ -111,25 +111,29 @@ const NovelWorks: React.FC = () => {
       const response = await getNovels(params);
       if (response.data?.code === ErrorCode.SUCCESS || response.data?.code === 1) {
         // 适配接口返回的字段到 Novel 类型
-        const list: Novel[] = (Array.isArray(response.data.data) ? response.data.data : []).map((item) => ({
+        const list = Array.isArray(response.data.data?.list) ? response.data.data.list : [];
+        setNovels(list.map((item) => ({
           id: String(item.id),
-          title: item.title,
-          author: item.author,
-          category: item.category,
-          tags: typeof item.tags === 'string' ? (item.tags as string).split(/[,，;；\s]+/).filter((t: string) => !!t) : Array.isArray(item.tags) ? item.tags as string[] : [],
-          status: item.status || '',
-          cover_url: item.cover_image,
-          description: item.description,
-          word_count: item.word_count ?? 0,
-          chapter_count: item.total_chapters ?? 0,
-          view_count: item.view_count ?? 0,
-          like_count: item.like_count ?? 0,
-          created_at: item.created_at,
-          updated_at: item.updated_at,
-          last_chapter_at: item.last_chapter_at ?? '',
-        }));
-        setNovels(list);
-        setTotal(list.length);
+          title: String(item.title ?? ''),
+          author: String(item.author ?? ''),
+          category: String(item.category ?? ''),
+          tags: typeof item.tags === 'string'
+            ? (item.tags as string).split(/[,，;；\s]+/).filter((t: string) => !!t)
+            : Array.isArray(item.tags) ? (item.tags as string[]) : [],
+          status: Object.values(NovelStatus).includes(item.status as NovelStatus)
+            ? item.status as NovelStatus
+            : NovelStatus.DRAFT,
+          cover_url: String((item as { cover_image?: string }).cover_image ?? ''),
+          description: String(item.description ?? ''),
+          word_count: Number(item.word_count ?? 0),
+          chapter_count: Number((item as { total_chapters?: number }).total_chapters ?? 0),
+          view_count: Number(item.view_count ?? 0),
+          like_count: Number(item.like_count ?? 0),
+          created_at: String(item.created_at ?? ''),
+          updated_at: String(item.updated_at ?? ''),
+          last_chapter_at: String(item.last_chapter_at ?? ''),
+        })));
+        setTotal(Number(response.data.data.total) || list.length);
       } else {
         console.error('获取小说列表失败:', response.data?.msg);
       }
