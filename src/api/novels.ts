@@ -5,7 +5,6 @@ import type {
   NovelListParams, 
   NovelListResponse, 
   CreateNovelParams,
-  UpdateNovelParams,
   NovelChapter
 } from './novel.define';
 
@@ -25,9 +24,9 @@ export const createNovel = (data: CreateNovelParams) => {
 };
 
 // 更新小说
-export const updateNovel = (id: string, data: UpdateNovelParams) => {
-  return request.put<ApiResponse<Novel>>(`/novels/${id}`, data);
-};
+export function updateNovel(novel_id: string | number, data: Record<string, unknown>) {
+  return request.put(`/novels/${novel_id}`, data);
+}
 
 // 删除小说
 export const deleteNovel = (id: string) => {
