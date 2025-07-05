@@ -4,7 +4,7 @@ import { getNovelDetail, updateNovel } from '../api/novels';
 import type { Novel, UpdateNovelParams } from '../api/novel.define';
 import { Box, Typography, Paper, CircularProgress, Chip, Stack, Button } from '@mui/material';
 import NovelForm from '../components/NovelForm';
-import { CATEGORIES, CATEGORY_LABELS } from '../api/novel.define';
+import { CATEGORIES, CATEGORY_LABELS, TAG_LABELS } from '../api/novel.define';
 
 const NovelDetail: React.FC = () => {
   const { novel_id } = useParams();
@@ -13,15 +13,6 @@ const NovelDetail: React.FC = () => {
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState<UpdateNovelParams>({});
   const [saving, setSaving] = useState(false);
-
-  // 预设的标签映射
-  const TAG_LABELS: Record<string, string> = {
-    hot: '热门',
-    new: '新书',
-    recommended: '推荐',
-    completed: '完结',
-    ongoing: '连载',
-  };
 
   useEffect(() => {
     if (!novel_id) return;

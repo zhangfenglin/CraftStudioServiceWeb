@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import type { CreateNovelParams, UpdateNovelParams } from '../api/novel.define';
+import { PRESET_TAGS } from '../api/novel.define';
 import type { SelectChangeEvent } from '@mui/material/Select';
 
 export interface NovelFormProps {
@@ -30,14 +31,6 @@ export interface NovelFormProps {
   onCancel?: () => void;
   error?: string;
 }
-
-const PRESET_TAGS = [
-  { value: 'hot', label: '热门', color: '#f44336' },
-  { value: 'new', label: '新书', color: '#2196f3' },
-  { value: 'recommended', label: '推荐', color: '#4caf50' },
-  { value: 'completed', label: '完结', color: '#ff9800' },
-  { value: 'ongoing', label: '连载', color: '#9c27b0' }
-];
 
 const NovelForm: React.FC<NovelFormProps> = ({
   mode,

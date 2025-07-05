@@ -32,16 +32,7 @@ import { createNovel } from '../api/novels';
 import { useAsyncErrorHandler } from '../hooks/useErrorHandler';
 import { ErrorDisplay } from '../components/ErrorDisplay';
 import type { CreateNovelParams } from '../api/novel.define';
-import { CATEGORIES } from '../api/novel.define';
-
-// 预设的标签选项
-const PRESET_TAGS = [
-  { value: 'hot', label: '热门', color: '#f44336' },
-  { value: 'new', label: '新书', color: '#2196f3' },
-  { value: 'recommended', label: '推荐', color: '#4caf50' },
-  { value: 'completed', label: '完结', color: '#ff9800' },
-  { value: 'ongoing', label: '连载', color: '#9c27b0' }
-];
+import { CATEGORIES, PRESET_TAGS } from '../api/novel.define';
 
 const CreateNovel: React.FC = () => {
   const navigate = useNavigate();

@@ -106,4 +106,16 @@ export const CATEGORIES = [
 ];
 
 // 分类 value => label 映射
-export const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(CATEGORIES.map(c => [c.value, c.label])); 
+export const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(CATEGORIES.map(c => [c.value, c.label]));
+
+// 预设的标签选项（全局复用）
+export const PRESET_TAGS = [
+  { value: 'hot', label: '热门', color: '#f44336' },
+  { value: 'new', label: '新书', color: '#2196f3' },
+  { value: 'recommended', label: '推荐', color: '#4caf50' },
+  { value: 'completed', label: '完结', color: '#ff9800' },
+  { value: 'ongoing', label: '连载', color: '#9c27b0' }
+];
+
+// 标签 value => label 映射
+export const TAG_LABELS: Record<string, string> = Object.fromEntries(PRESET_TAGS.map(t => [t.value, t.label])); 

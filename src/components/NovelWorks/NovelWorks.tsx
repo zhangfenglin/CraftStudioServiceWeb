@@ -51,7 +51,7 @@ import {
 import { getNovels, deleteNovel, batchDeleteNovels } from '../../api/novels';
 import { ErrorCode } from '../../api/errorCodes';
 import type { Novel, NovelListParams } from '../../api/novel.define';
-import { NovelStatus, CATEGORY_LABELS } from '../../api/novel.define';
+import { NovelStatus, CATEGORY_LABELS, TAG_LABELS } from '../../api/novel.define';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 import { ErrorDisplay } from '../ErrorDisplay';
 import { useNavigate } from 'react-router-dom';
@@ -424,7 +424,7 @@ const NovelWorks: React.FC = () => {
                 {novel.tags && novel.tags.length > 0 && (
                   <Stack direction="row" spacing={0.5} mb={2} flexWrap="wrap" useFlexGap>
                     {novel.tags.slice(0, 3).map((tag: string, index: number) => (
-                      <Chip key={index} label={tag} size="small" variant="outlined" />
+                      <Chip key={index} label={TAG_LABELS[tag] || tag} size="small" variant="outlined" />
                     ))}
                     {novel.tags.length > 3 && (
                       <Chip label={`+${novel.tags.length - 3}`} size="small" variant="outlined" />
