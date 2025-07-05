@@ -21,7 +21,7 @@ export const getNovelDetail = (id: string) => {
 
 // 创建小说
 export const createNovel = (data: CreateNovelParams) => {
-  return request.post<ApiResponse<Novel>>('/novels', data);
+  return request.post<ApiResponse<{ id: string }>>('/novels/create', data);
 };
 
 // 更新小说

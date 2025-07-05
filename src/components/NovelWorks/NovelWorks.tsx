@@ -337,7 +337,7 @@ const NovelWorks: React.FC = () => {
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="编辑">
-                      <IconButton size="small">
+                      <IconButton size="small" onClick={() => navigate(`/novels/${novel.id}/chapters/create`, { state: { novelTitle: novel.title } })}>
                         <EditIcon />
                       </IconButton>
                     </Tooltip>
@@ -436,7 +436,7 @@ const NovelWorks: React.FC = () => {
                 <Button size="small" startIcon={<ViewIcon />}>
                   查看
                 </Button>
-                <Button size="small" startIcon={<EditIcon />}>
+                <Button size="small" startIcon={<EditIcon />} onClick={() => navigate(`/novels/${novel.id}/chapters/create`, { state: { novelTitle: novel.title } })}>
                   编辑
                 </Button>
                 <Button 

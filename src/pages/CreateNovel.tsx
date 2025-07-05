@@ -31,7 +31,7 @@ import { useNavigate } from 'react-router-dom';
 import { createNovel } from '../api/novels';
 import { useAsyncErrorHandler } from '../hooks/useErrorHandler';
 import { ErrorDisplay } from '../components/ErrorDisplay';
-import type { CreateNovelParams, Novel } from '../api/novel.define';
+import type { CreateNovelParams } from '../api/novel.define';
 
 // 预设的分类选项
 const CATEGORIES = [
@@ -57,7 +57,7 @@ const PRESET_TAGS = [
 
 const CreateNovel: React.FC = () => {
   const navigate = useNavigate();
-  const { errorState, executeAsync, clearError } = useAsyncErrorHandler();
+  const { errorState, clearError } = useAsyncErrorHandler();
   
   const [formData, setFormData] = useState<CreateNovelParams>({
     title: '',
@@ -142,24 +142,31 @@ const CreateNovel: React.FC = () => {
       return;
     }
 
-    await executeAsync(
-      async () => {
-        setLoading(true);
-        return await createNovel(formData);
-      },
-      (response) => {
-        // 创建成功后的处理
+    setLoading(true);
+    try {
+      const response = await createNovel(formData);
+      const resData = response.data;
+      if (resData.code === 1 && resData.data && resData.data.id) {
         alert('小说创建成功！');
-        // 跳转到小说详情页面或章节创建页面
-        const novelId = response.data.id;
-        navigate(`/novels/${novelId}/chapters`);
-      },
-      (error) => {
-        console.error('创建小说失败:', error);
+        const novelId = resData.data.id;
+        navigate(`/novels/${novelId}/chapters/create`, {
+          state: {
+            novelTitle: formData.title
+          }
+        });
+      } else {
+        alert(resData.msg || '创建失败');
       }
-    );
-
-    setLoading(false);
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error !== null) {
+        const err = error as { msg?: string; message?: string };
+        alert(err.msg || err.message || '创建失败');
+      } else {
+        alert('创建失败');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 跳转到章节创建页面

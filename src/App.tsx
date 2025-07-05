@@ -10,6 +10,7 @@ import CreateWorkflow from './pages/CreateWorkflow';
 import NovelCreation from './pages/NovelCreation';
 import NovelWorks from './components/NovelWorks';
 import CreateNovel from './pages/CreateNovel';
+import CreateChapter from './pages/CreateChapter';
 
 const theme = createTheme({
   palette: {
@@ -39,6 +40,7 @@ const App = () => {
             <Route path="/novel-creation" element={<NovelCreation />} />
             <Route path="/novel-creation/works" element={<NovelWorks />} />
             <Route path="/novels/create" element={<CreateNovel />} />
+            <Route path="/novels/:novelId/chapters/create" element={<CreateChapter />} />
           </Routes>
         </Layout>
       </Router>
