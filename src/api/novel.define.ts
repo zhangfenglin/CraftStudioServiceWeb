@@ -57,12 +57,6 @@ export interface NovelListResponse {
   list: Novel[];
 }
 
-// 小说详情响应
-export interface NovelDetailResponse {
-  novel: Novel;
-  chapters?: NovelChapter[];
-}
-
 // 小说章节
 export interface NovelChapter {
   id: string;

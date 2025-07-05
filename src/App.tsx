@@ -11,6 +11,7 @@ import NovelCreation from './pages/NovelCreation';
 import NovelWorks from './components/NovelWorks';
 import CreateNovel from './pages/CreateNovel';
 import CreateChapter from './pages/CreateChapter';
+import NovelDetail from './pages/NovelDetail';
 
 const theme = createTheme({
   palette: {
@@ -41,6 +42,7 @@ const App = () => {
             <Route path="/novel-creation/works" element={<NovelWorks />} />
             <Route path="/novels/create" element={<CreateNovel />} />
             <Route path="/novels/:novelId/chapters/create" element={<CreateChapter />} />
+            <Route path="/novels/:novel_id" element={<NovelDetail />} />
           </Routes>
         </Layout>
       </Router>

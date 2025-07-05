@@ -4,7 +4,6 @@ import type {
   Novel, 
   NovelListParams, 
   NovelListResponse, 
-  NovelDetailResponse,
   CreateNovelParams,
   UpdateNovelParams,
   NovelChapter
@@ -16,8 +15,8 @@ export const getNovels = (params: NovelListParams = {}) => {
 };
 
 // 获取小说详情
-export const getNovelDetail = (id: string) => {
-  return request.get<ApiResponse<NovelDetailResponse>>(`/novels/${id}`);
+export const getNovelDetail = (novelId: string) => {
+  return request.get<ApiResponse<Novel>>(`/novels/${novelId}`);
 };
 
 // 创建小说

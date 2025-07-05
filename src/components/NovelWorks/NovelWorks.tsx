@@ -332,7 +332,7 @@ const NovelWorks: React.FC = () => {
                 <TableCell>
                   <Stack direction="row" spacing={1}>
                     <Tooltip title="查看">
-                      <IconButton size="small">
+                      <IconButton size="small" onClick={() => navigate(`/novels/${novel.id}`)}>
                         <ViewIcon />
                       </IconButton>
                     </Tooltip>
@@ -433,7 +433,7 @@ const NovelWorks: React.FC = () => {
                 )}
               </CardContent>
               <CardActions>
-                <Button size="small" startIcon={<ViewIcon />}>
+                <Button size="small" startIcon={<ViewIcon />} onClick={() => navigate(`/novels/${novel.id}`)}>
                   查看
                 </Button>
                 <Button size="small" startIcon={<EditIcon />} onClick={() => navigate(`/novels/${novel.id}/chapters/create`, { state: { novelTitle: novel.title } })}>
