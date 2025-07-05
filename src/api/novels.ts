@@ -6,7 +6,8 @@ import type {
   NovelListResponse, 
   NovelDetailResponse,
   CreateNovelParams,
-  UpdateNovelParams
+  UpdateNovelParams,
+  NovelChapter
 } from './novel.define';
 
 // 获取小说列表
@@ -44,4 +45,22 @@ export const batchDeleteNovels = (ids: string[]) => {
 // 更新小说状态
 export const updateNovelStatus = (id: string, status: string) => {
   return request.patch<ApiResponse<Novel>>(`/novels/${id}/status`, { status });
+};
+
+// 获取小说章节列表（分页）
+export const getNovelChapters = (novelId: string, params: { page?: number; page_size?: number } = {}) => {
+  return request.get<ApiResponse<{ list: NovelChapter[]; total: number }>>(`/novels/${novelId}/chapters/list`, { params });
+};
+
+// 创建章节
+export const createNovelChapter = (
+  novelId: string,
+  data: { title: string; content: string; chapter_id?: number | string }
+) => {
+  return request.post<ApiResponse<{ id: string }>>(`/novels/${novelId}/chapters/save`, {
+    novel_id: Number(novelId),
+    title: data.title,
+    content: data.content,
+    ...(data.chapter_id ? { chapter_id: data.chapter_id } : {})
+  });
 }; 

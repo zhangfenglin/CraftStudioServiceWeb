@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -18,41 +18,63 @@ import {
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
 import MDEditor from '@uiw/react-md-editor';
-import { useParams, useLocation } from 'react-router-dom';
-
-// mock 章节数据
-const initialChapters = [
-  { id: 1, title: '第一章 意外的访客', content: '这里是第一章内容...' },
-  { id: 2, title: '第二章 神秘的信件', content: '这里是第二章内容...' },
-];
+import { useParams } from 'react-router-dom';
+import { getNovelChapters, createNovelChapter } from '../api/novels';
+import type { NovelChapter } from '../api/novel.define';
 
 const CreateChapter: React.FC = () => {
   const { novelId } = useParams();
-  const location = useLocation();
-  const novelTitle = location.state?.novelTitle;
-  const [chapters, setChapters] = useState(initialChapters);
-  const [selectedChapterId, setSelectedChapterId] = useState<number | null>(null);
+  const [chapters, setChapters] = useState<NovelChapter[]>([]);
+  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newChapterTitle, setNewChapterTitle] = useState('');
   const [mdValue, setMdValue] = useState<string>('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [chapterTitle, setChapterTitle] = useState('');
 
-  const handleSelectChapter = (id: number) => {
+  useEffect(() => {
+    if (!novelId) return;
+    setLoading(true);
+    getNovelChapters(novelId, { page, page_size: pageSize })
+      .then(res => {
+        if (res.data.code === 1 && res.data.data) {
+          setChapters(res.data.data.list);
+          setTotal(res.data.data.total);
+          if (selectedChapterId) {
+            const chapter = res.data.data.list.find((c: NovelChapter) => c.id === selectedChapterId);
+            setChapterTitle(chapter ? chapter.title : '');
+            setMdValue(chapter ? chapter.content || '' : '');
+          }
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [novelId, page, pageSize, selectedChapterId]);
+
+  const handleSelectChapter = (id: string) => {
     setSelectedChapterId(id);
+    setIsCreating(false);
     const chapter = chapters.find(c => c.id === id);
-    setMdValue(chapter ? chapter.content : '');
+    setMdValue(chapter ? chapter.content || '' : '');
+    setChapterTitle(chapter ? chapter.title : '');
   };
 
   const handleAddChapter = () => {
-    setDialogOpen(true);
+    setIsCreating(true);
+    setSelectedChapterId(null);
+    setMdValue('');
+    setChapterTitle('');
   };
 
   const handleDialogOk = () => {
-    if (newChapterTitle.trim()) {
-      const newId = chapters.length ? Math.max(...chapters.map(c => c.id)) + 1 : 1;
-      setChapters([...chapters, { id: newId, title: newChapterTitle, content: '' }]);
-      setNewChapterTitle('');
-      setDialogOpen(false);
-    }
+    setDialogOpen(false);
+    setIsCreating(true);
+    setSelectedChapterId(null);
+    setMdValue('');
   };
 
   const handleDialogCancel = () => {
@@ -60,13 +82,68 @@ const CreateChapter: React.FC = () => {
     setNewChapterTitle('');
   };
 
-  const handleSaveContent = () => {
-    if (selectedChapterId !== null) {
-      setChapters(chapters.map(c => c.id === selectedChapterId ? { ...c, content: mdValue } : c));
+  const handleSaveContent = async () => {
+    if (!novelId) return;
+    if (isCreating) {
+      if (!chapterTitle.trim()) {
+        alert('请输入章节标题');
+        return;
+      }
+      setSaving(true);
+      try {
+        const res = await createNovelChapter(novelId, { title: chapterTitle, content: mdValue });
+        if (res.data.code === 1 && res.data.data?.id) {
+          alert('章节创建成功！');
+          setIsCreating(false);
+          setChapterTitle('');
+          getNovelChapters(novelId, { page, page_size: pageSize }).then(r => {
+            if (r.data.code === 1 && r.data.data) {
+              setChapters(r.data.data.list);
+              setTotal(r.data.data.total);
+              setSelectedChapterId(res.data.data.id);
+              const chapter = r.data.data.list.find((c: NovelChapter) => c.id === res.data.data.id);
+              setMdValue(chapter ? chapter.content || '' : '');
+            }
+          });
+        } else {
+          alert(res.data.msg || '创建失败');
+        }
+      } catch {
+        alert('创建失败');
+      } finally {
+        setSaving(false);
+      }
+    } else if (selectedChapterId) {
+      const chapter = chapters.find(c => c.id === selectedChapterId);
+      if (!chapter) return;
+      setSaving(true);
+      try {
+        const res = await createNovelChapter(novelId, {
+          title: chapterTitle,
+          content: mdValue,
+          chapter_id: chapter.id as unknown as number
+        });
+        if (res.data.code === 1) {
+          alert('章节保存成功！');
+          getNovelChapters(novelId, { page, page_size: pageSize }).then(r => {
+            if (r.data.code === 1 && r.data.data) {
+              setChapters(r.data.data.list);
+              setTotal(r.data.data.total);
+              setSelectedChapterId(chapter.id);
+              const updated = r.data.data.list.find((c: NovelChapter) => c.id === chapter.id);
+              setMdValue(updated ? updated.content || '' : '');
+            }
+          });
+        } else {
+          alert(res.data.msg || '保存失败');
+        }
+      } catch {
+        alert('保存失败');
+      } finally {
+        setSaving(false);
+      }
     }
   };
-
-  const selectedChapter = chapters.find(c => c.id === selectedChapterId);
 
   return (
     <Box sx={{ display: 'flex', height: '100vh', bgcolor: '#f7f8fa' }}>
@@ -77,7 +154,11 @@ const CreateChapter: React.FC = () => {
         </Button>
         <Divider sx={{ mb: 2 }} />
         <List>
-          {chapters.map((item) => (
+          {loading ? (
+            <ListItem><ListItemText primary="加载中..." /></ListItem>
+          ) : chapters.length === 0 ? (
+            <ListItem><ListItemText primary="暂无章节" /></ListItem>
+          ) : chapters.map((item) => (
             <ListItem key={item.id} disablePadding>
               <ListItemButton
                 selected={selectedChapterId === item.id}
@@ -88,6 +169,12 @@ const CreateChapter: React.FC = () => {
             </ListItem>
           ))}
         </List>
+        {/* 分页 */}
+        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+          <Button disabled={page === 1} onClick={() => setPage(page - 1)} size="small">上一页</Button>
+          <Box sx={{ mx: 1, alignSelf: 'center' }}>{page} / {Math.ceil(total / pageSize) || 1}</Box>
+          <Button disabled={page * pageSize >= total} onClick={() => setPage(page + 1)} size="small">下一页</Button>
+        </Box>
         <Dialog open={dialogOpen} onClose={handleDialogCancel} maxWidth="xs" fullWidth>
           <DialogTitle>新建章节</DialogTitle>
           <DialogContent>
@@ -108,12 +195,39 @@ const CreateChapter: React.FC = () => {
       </Paper>
       {/* 右侧编辑区 */}
       <Box sx={{ flex: 1, p: 4, overflow: 'auto' }}>
-        {selectedChapter ? (
+        {isCreating ? (
           <Stack spacing={3}>
             <TextField
               label="章节标题"
-              value={selectedChapter.title}
-              InputProps={{ readOnly: true }}
+              value={chapterTitle}
+              onChange={e => setChapterTitle(e.target.value)}
+              sx={{ fontSize: 18, width: 400 }}
+              inputProps={{ maxLength: 100 }}
+              autoFocus
+            />
+            <Box>
+              <MDEditor
+                value={mdValue}
+                height={400}
+                onChange={(v: string | undefined) => setMdValue(v || '')}
+                previewOptions={{
+                  style: { background: '#fff' }
+                }}
+              />
+            </Box>
+            <Box>
+              <Button variant="contained" onClick={handleSaveContent} disabled={saving}>
+                {saving ? '保存中...' : '保存章节'}
+              </Button>
+            </Box>
+          </Stack>
+        ) : selectedChapterId ? (
+          <Stack spacing={3}>
+            <TextField
+              label="章节标题"
+              value={chapterTitle}
+              onChange={e => setChapterTitle(e.target.value)}
+              inputProps={{ maxLength: 100 }}
               sx={{ fontSize: 18, width: 400 }}
             />
             <Box>
@@ -127,7 +241,9 @@ const CreateChapter: React.FC = () => {
               />
             </Box>
             <Box>
-              <Button variant="contained" onClick={handleSaveContent}>保存正文</Button>
+              <Button variant="contained" onClick={handleSaveContent} disabled={saving}>
+                {saving ? '保存中...' : '保存正文'}
+              </Button>
             </Box>
           </Stack>
         ) : (
