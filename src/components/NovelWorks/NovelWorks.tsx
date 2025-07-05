@@ -51,7 +51,7 @@ import {
 import { getNovels, deleteNovel, batchDeleteNovels } from '../../api/novels';
 import { ErrorCode } from '../../api/errorCodes';
 import type { Novel, NovelListParams } from '../../api/novel.define';
-import { NovelStatus } from '../../api/novel.define';
+import { NovelStatus, CATEGORY_LABELS } from '../../api/novel.define';
 import { useErrorHandler } from '../../hooks/useErrorHandler';
 import { ErrorDisplay } from '../ErrorDisplay';
 import { useNavigate } from 'react-router-dom';
@@ -317,7 +317,7 @@ const NovelWorks: React.FC = () => {
                   </Typography>
                 </TableCell>
                 <TableCell>{novel.author}</TableCell>
-                <TableCell>{novel.category}</TableCell>
+                <TableCell>{CATEGORY_LABELS[novel.category] || novel.category || '未分类'}</TableCell>
                 <TableCell>
                   <Chip
                     icon={statusInfo.icon}
@@ -411,7 +411,7 @@ const NovelWorks: React.FC = () => {
                     <strong>作者:</strong> {novel.author}
                   </Typography>
                   <Typography variant="body2">
-                    <strong>分类:</strong> {novel.category}
+                    <strong>分类:</strong> {CATEGORY_LABELS[novel.category] || novel.category || '未分类'}
                   </Typography>
                   <Typography variant="body2">
                     <strong>字数:</strong> {novel.word_count?.toLocaleString?.() ?? novel.word_count ?? 0}
@@ -505,11 +505,9 @@ const NovelWorks: React.FC = () => {
                 onChange={(e) => setCategoryFilter(e.target.value)}
               >
                 <MenuItem value="">全部分类</MenuItem>
-                <MenuItem value="玄幻">玄幻</MenuItem>
-                <MenuItem value="都市">都市</MenuItem>
-                <MenuItem value="历史">历史</MenuItem>
-                <MenuItem value="科幻">科幻</MenuItem>
-                <MenuItem value="游戏">游戏</MenuItem>
+                {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
+                  <MenuItem key={value} value={value}>{label}</MenuItem>
+                ))}
               </Select>
             </FormControl>
             <FormControl size="small" sx={{ minWidth: 120 }}>

@@ -90,4 +90,20 @@ export interface UpdateNovelParams {
   description?: string;
   cover_url?: string;
   status?: NovelStatus;
-} 
+}
+
+// 小说分类选项（全局复用）
+export const CATEGORIES = [
+  { value: 'fantasy', label: '奇幻' },
+  { value: 'romance', label: '言情' },
+  { value: 'mystery', label: '悬疑' },
+  { value: 'scifi', label: '科幻' },
+  { value: 'historical', label: '历史' },
+  { value: 'urban', label: '都市' },
+  { value: 'martial', label: '武侠' },
+  { value: 'game', label: '游戏' },
+  { value: 'other', label: '其他' }
+];
+
+// 分类 value => label 映射
+export const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(CATEGORIES.map(c => [c.value, c.label])); 

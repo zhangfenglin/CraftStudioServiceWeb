@@ -32,19 +32,7 @@ import { createNovel } from '../api/novels';
 import { useAsyncErrorHandler } from '../hooks/useErrorHandler';
 import { ErrorDisplay } from '../components/ErrorDisplay';
 import type { CreateNovelParams } from '../api/novel.define';
-
-// 预设的分类选项
-const CATEGORIES = [
-  { value: 'fantasy', label: '奇幻' },
-  { value: 'romance', label: '言情' },
-  { value: 'mystery', label: '悬疑' },
-  { value: 'scifi', label: '科幻' },
-  { value: 'historical', label: '历史' },
-  { value: 'urban', label: '都市' },
-  { value: 'martial', label: '武侠' },
-  { value: 'game', label: '游戏' },
-  { value: 'other', label: '其他' }
-];
+import { CATEGORIES } from '../api/novel.define';
 
 // 预设的标签选项
 const PRESET_TAGS = [

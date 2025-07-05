@@ -4,6 +4,7 @@ import { getNovelDetail, updateNovel } from '../api/novels';
 import type { Novel, UpdateNovelParams } from '../api/novel.define';
 import { Box, Typography, Paper, CircularProgress, Chip, Stack, Button } from '@mui/material';
 import NovelForm from '../components/NovelForm';
+import { CATEGORIES, CATEGORY_LABELS } from '../api/novel.define';
 
 const NovelDetail: React.FC = () => {
   const { novel_id } = useParams();
@@ -12,19 +13,6 @@ const NovelDetail: React.FC = () => {
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState<UpdateNovelParams>({});
   const [saving, setSaving] = useState(false);
-
-  // 预设的分类选项
-  const CATEGORIES = [
-    { value: 'fantasy', label: '奇幻' },
-    { value: 'romance', label: '言情' },
-    { value: 'mystery', label: '悬疑' },
-    { value: 'scifi', label: '科幻' },
-    { value: 'historical', label: '历史' },
-    { value: 'urban', label: '都市' },
-    { value: 'martial', label: '武侠' },
-    { value: 'game', label: '游戏' },
-    { value: 'other', label: '其他' }
-  ];
 
   // 预设的标签映射
   const TAG_LABELS: Record<string, string> = {
@@ -107,7 +95,7 @@ const NovelDetail: React.FC = () => {
         {!editMode && (
           <Stack direction="row" spacing={2} mb={2}>
             <Chip label={`作者：${novel.author}`} />
-            <Chip label={`分类：${CATEGORIES.find(c => c.value === novel.category)?.label || novel.category || '未分类'}`} />
+            <Chip label={`分类：${CATEGORY_LABELS[novel.category] || novel.category || '未分类'}`} />
             <Chip label={`字数：${novel.word_count}`} />
             <Chip label={`章节数：${getTotalChapters(novel)}`} />
           </Stack>

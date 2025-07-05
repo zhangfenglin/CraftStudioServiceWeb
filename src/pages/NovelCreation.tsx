@@ -38,6 +38,7 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { CATEGORY_LABELS } from '../api/novel.define';
 
 const NovelCreation: React.FC = () => {
   const navigate = useNavigate();
@@ -53,7 +54,7 @@ const NovelCreation: React.FC = () => {
       cover: 'https://via.placeholder.com/120x160/e3f2fd/1976d2?text=星辰',
       progress: 75,
       status: '连载中',
-      category: '科幻',
+      category: 'scifi',
       wordCount: 125000,
       lastUpdate: '2024-01-15',
       rating: 4.8,
@@ -64,7 +65,7 @@ const NovelCreation: React.FC = () => {
       cover: 'https://via.placeholder.com/120x160/f3e5f5/7b1fa2?text=修仙',
       progress: 45,
       status: '连载中',
-      category: '仙侠',
+      category: 'martial',
       wordCount: 89000,
       lastUpdate: '2024-01-14',
       rating: 4.6,
@@ -75,7 +76,7 @@ const NovelCreation: React.FC = () => {
       cover: 'https://via.placeholder.com/120x160/e8f5e8/388e3c?text=推理',
       progress: 100,
       status: '已完结',
-      category: '悬疑',
+      category: 'mystery',
       wordCount: 156000,
       lastUpdate: '2024-01-10',
       rating: 4.9,
@@ -86,7 +87,7 @@ const NovelCreation: React.FC = () => {
       cover: 'https://via.placeholder.com/120x160/fff3e0/f57c00?text=情感',
       progress: 30,
       status: '连载中',
-      category: '都市',
+      category: 'urban',
       wordCount: 45000,
       lastUpdate: '2024-01-12',
       rating: 4.5,
@@ -398,7 +399,7 @@ const NovelCreation: React.FC = () => {
                   
                   <Stack direction="row" spacing={1} mb={2} flexWrap="wrap" useFlexGap>
                     <Chip 
-                      label={work.category} 
+                      label={CATEGORY_LABELS[work.category] || work.category} 
                       size="small" 
                       variant="outlined"
                       sx={{
