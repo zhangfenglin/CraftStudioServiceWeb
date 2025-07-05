@@ -346,21 +346,9 @@ const VoiceOver: React.FC = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f7f8fa', py: 6, px: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      {/* Header */}
-      <Paper elevation={2} sx={{ px: 6, py: 4, borderRadius: 4, mb: 4, display: 'flex', alignItems: 'center', gap: 3, boxShadow: '0 4px 24px rgba(25,118,210,0.06)' }}>
-        <IconButton onClick={() => navigate('/novel-creation')} size="large" sx={{ mr: 2 }}>
-          <BackIcon fontSize="large" />
-        </IconButton>
-        <VoiceIcon sx={{ fontSize: 48, color: '#388e3c', mr: 2 }} />
-        <Box>
-          <Typography variant="h3" fontWeight="bold" sx={{ letterSpacing: 1, mb: 1 }}>智能配音</Typography>
-          <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 400 }}>
-            为小说章节生成角色配音和旁白
-          </Typography>
-        </Box>
-      </Paper>
+      {/* Header 已移除 */}
 
-      <Box sx={{ width: '100%', maxWidth: 700, mx: 'auto' }}>
+      <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto' }}>
         <Paper elevation={1} sx={{ p: { xs: 3, md: 5 }, borderRadius: 4, mb: 4, boxShadow: '0 2px 16px rgba(25,118,210,0.04)' }}>
           {renderNovelSelection()}
         </Paper>
