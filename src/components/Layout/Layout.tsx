@@ -18,6 +18,7 @@ import {
   Tab,
   IconButton,
   useMediaQuery,
+  Paper,
 } from '@mui/material';
 import {
   Home as HomeIcon,
@@ -682,15 +683,35 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
         component="main"
         sx={{
           flexGrow: 1,
-          pt: isMobile ? 16 : 8,
-          px: { xs: 2, sm: 4 },
-          pb: 4,
+          pt: isMobile ? 20 : 12,
+          pb: 6,
           bgcolor: '#f8fafc',
           display: 'flex',
           flexDirection: 'column',
+          width: '100vw',
+          minWidth: 0,
+          px: 0,
         }}
       >
-        {children}
+        <Paper
+          elevation={2}
+          sx={{
+            flex: 1,
+            px: { xs: 2, sm: 3, md: 4 },
+            py: { xs: 2, sm: 3 },
+            bgcolor: 'white',
+            borderRadius: 3,
+            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04)',
+            border: '1px solid',
+            borderColor: 'rgba(0, 0, 0, 0.06)',
+            display: 'flex',
+            flexDirection: 'column',
+            width: '100vw',
+            minWidth: 0,
+          }}
+        >
+          {children}
+        </Paper>
       </Box>
     </Box>
   );

@@ -20,8 +20,8 @@ const CreateWorkflow: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
-      {/* Header */}
-      <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
+        {/* Header */}
+        <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
         <Stack direction="row" alignItems="center" spacing={2}>
           <Button
             startIcon={<ArrowBackIcon />}
@@ -56,7 +56,7 @@ const CreateWorkflow: React.FC = () => {
           </Typography>
         </Box>
       </Paper>
-    </Box>
+      </Box>
   );
 };
 

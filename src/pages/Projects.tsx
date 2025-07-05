@@ -336,7 +336,7 @@ const Projects = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, newPage: number) => {
+  const handlePageChange = (_event: React.ChangeEvent<unknown>, newPage: number) => {
     fetchProjects(newPage, pagination.size);
   };
 

@@ -554,7 +554,7 @@ const Workflows: React.FC = () => {
           </Box>
         )}
       </Paper>
-    </Box>
+      </Box>
   );
 };
 

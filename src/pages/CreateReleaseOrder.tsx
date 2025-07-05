@@ -193,8 +193,8 @@ const CreateReleaseOrder = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
-      {/* Header */}
-      <Paper 
+        {/* Header */}
+        <Paper
         elevation={2} 
         sx={{ 
           p: 3, 
@@ -395,7 +395,7 @@ const CreateReleaseOrder = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Box>
+      </Box>
   );
 };
 

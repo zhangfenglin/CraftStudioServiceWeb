@@ -1,5 +1,5 @@
 import { Box, Typography, Paper, Dialog, DialogTitle, DialogContent, DialogActions, Button, Chip, Divider, Avatar, Stack } from '@mui/material';
-import type { Project } from '../api/project.define';
+import type { Project } from '../../api/project.define';
 
 interface ProjectDetailProps {
   open: boolean;
