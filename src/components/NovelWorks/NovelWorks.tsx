@@ -110,8 +110,26 @@ const NovelWorks: React.FC = () => {
 
       const response = await getNovels(params);
       if (response.data?.code === ErrorCode.SUCCESS || response.data?.code === 1) {
-        setNovels(response.data.data.list || []);
-        setTotal(response.data.data.total || 0);
+        // 适配接口返回的字段到 Novel 类型
+        const list: Novel[] = (Array.isArray(response.data.data) ? response.data.data : []).map((item) => ({
+          id: String(item.id),
+          title: item.title,
+          author: item.author,
+          category: item.category,
+          tags: typeof item.tags === 'string' ? (item.tags as string).split(/[,，;；\s]+/).filter((t: string) => !!t) : Array.isArray(item.tags) ? item.tags as string[] : [],
+          status: item.status || '',
+          cover_url: item.cover_image,
+          description: item.description,
+          word_count: item.word_count ?? 0,
+          chapter_count: item.total_chapters ?? 0,
+          view_count: item.view_count ?? 0,
+          like_count: item.like_count ?? 0,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          last_chapter_at: item.last_chapter_at ?? '',
+        }));
+        setNovels(list);
+        setTotal(list.length);
       } else {
         console.error('获取小说列表失败:', response.data?.msg);
       }
@@ -279,7 +297,6 @@ const NovelWorks: React.FC = () => {
           {novels.map((novel) => {
             const statusInfo = getStatusInfo(novel.status);
             const isSelected = selectedNovels.includes(novel.id);
-            
             return (
               <TableRow key={novel.id} selected={isSelected}>
                 <TableCell padding="checkbox">
@@ -292,11 +309,6 @@ const NovelWorks: React.FC = () => {
                   <Typography variant="subtitle2" fontWeight="bold">
                     {novel.title}
                   </Typography>
-                  {novel.description && (
-                    <Typography variant="body2" color="text.secondary" noWrap>
-                      {novel.description}
-                    </Typography>
-                  )}
                 </TableCell>
                 <TableCell>{novel.author}</TableCell>
                 <TableCell>{novel.category}</TableCell>
@@ -308,8 +320,8 @@ const NovelWorks: React.FC = () => {
                     size="small"
                   />
                 </TableCell>
-                <TableCell>{novel.word_count.toLocaleString()}</TableCell>
-                <TableCell>{novel.chapter_count}</TableCell>
+                <TableCell>{novel.word_count?.toLocaleString?.() ?? novel.word_count ?? 0}</TableCell>
+                <TableCell>{novel.chapter_count ?? 0}</TableCell>
                 <TableCell>{formatTime(novel.updated_at)}</TableCell>
                 <TableCell>
                   <Stack direction="row" spacing={1}>
@@ -348,7 +360,6 @@ const NovelWorks: React.FC = () => {
       {novels.map((novel) => {
         const statusInfo = getStatusInfo(novel.status);
         const isSelected = selectedNovels.includes(novel.id);
-        
         return (
           <Grid item xs={12} sm={6} md={4} lg={3} key={novel.id}>
             <Card 
@@ -385,16 +396,9 @@ const NovelWorks: React.FC = () => {
                     sx={{ ml: 'auto' }}
                   />
                 </Stack>
-                
                 <Typography variant="h6" fontWeight="bold" mb={1} noWrap>
                   {novel.title}
                 </Typography>
-                
-                {novel.description && (
-                  <Typography variant="body2" color="text.secondary" mb={2} noWrap>
-                    {novel.description}
-                  </Typography>
-                )}
                 
                 <Stack spacing={1} mb={2}>
                   <Typography variant="body2">
@@ -404,16 +408,16 @@ const NovelWorks: React.FC = () => {
                     <strong>分类:</strong> {novel.category}
                   </Typography>
                   <Typography variant="body2">
-                    <strong>字数:</strong> {novel.word_count.toLocaleString()}
+                    <strong>字数:</strong> {novel.word_count?.toLocaleString?.() ?? novel.word_count ?? 0}
                   </Typography>
                   <Typography variant="body2">
-                    <strong>章节:</strong> {novel.chapter_count}
+                    <strong>章节:</strong> {novel.chapter_count ?? 0}
                   </Typography>
                 </Stack>
                 
                 {novel.tags && novel.tags.length > 0 && (
                   <Stack direction="row" spacing={0.5} mb={2} flexWrap="wrap" useFlexGap>
-                    {novel.tags.slice(0, 3).map((tag, index) => (
+                    {novel.tags.slice(0, 3).map((tag: string, index: number) => (
                       <Chip key={index} label={tag} size="small" variant="outlined" />
                     ))}
                     {novel.tags.length > 3 && (
@@ -422,7 +426,6 @@ const NovelWorks: React.FC = () => {
                   </Stack>
                 )}
               </CardContent>
-              
               <CardActions>
                 <Button size="small" startIcon={<ViewIcon />}>
                   查看
