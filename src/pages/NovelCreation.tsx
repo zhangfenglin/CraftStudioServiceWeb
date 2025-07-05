@@ -31,7 +31,7 @@ import {
   Edit as EditIcon,
   Visibility as ViewIcon,
   Star as StarIcon,
-  Psychology as PsychologyIcon,
+  RecordVoiceOver as VoiceIcon,
   FormatListBulleted as OutlineIcon,
   Description as ChapterIcon,
   Menu as MenuIcon,
@@ -110,9 +110,9 @@ const NovelCreation: React.FC = () => {
     navigate('/novels/create');
   };
 
-  const handleAIAssistant = () => {
-    // 处理AI助手逻辑
-    console.log('打开AI助手');
+  const handleVoiceOver = () => {
+    // 处理智能配音逻辑
+    navigate('/voice-over');
   };
 
   const handleInspiration = () => {
@@ -229,13 +229,13 @@ const NovelCreation: React.FC = () => {
                   boxShadow: '0 8px 25px rgba(25, 118, 210, 0.15)',
                 }
               }}
-              onClick={handleAIAssistant}
+              onClick={handleVoiceOver}
             >
               <CardContent sx={{ textAlign: 'center', p: { xs: 1, md: 2 }, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <PsychologyIcon sx={{ fontSize: { xs: 32, md: 40 }, mb: 1, color: '#388e3c' }} />
-                <Typography variant="h6" fontWeight="bold" color="text.primary" sx={{ fontSize: { xs: '0.9rem', md: '1.1rem' } }}>AI助手</Typography>
+                <VoiceIcon sx={{ fontSize: { xs: 32, md: 40 }, mb: 1, color: '#388e3c' }} />
+                <Typography variant="h6" fontWeight="bold" color="text.primary" sx={{ fontSize: { xs: '0.9rem', md: '1.1rem' } }}>智能配音</Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}>
-                  智能创作辅助
+                  为小说生成配音
                 </Typography>
               </CardContent>
             </Card>
@@ -650,11 +650,11 @@ const NovelCreation: React.FC = () => {
           <ListItemText primary="我的作品" />
         </ListItemButton>
         
-        <ListItemButton onClick={handleAIAssistant}>
+        <ListItemButton onClick={handleVoiceOver}>
           <ListItemIcon>
-            <PsychologyIcon sx={{ color: '#388e3c' }} />
+            <VoiceIcon sx={{ color: '#388e3c' }} />
           </ListItemIcon>
-          <ListItemText primary="AI助手" />
+          <ListItemText primary="智能配音" />
         </ListItemButton>
         
         <ListItemButton onClick={handleInspiration}>

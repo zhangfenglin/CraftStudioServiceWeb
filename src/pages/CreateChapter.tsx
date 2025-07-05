@@ -213,6 +213,7 @@ const CreateChapter: React.FC = () => {
                 previewOptions={{
                   style: { background: '#fff' }
                 }}
+                data-color-mode="light"
               />
             </Box>
             <Box>
@@ -238,6 +239,7 @@ const CreateChapter: React.FC = () => {
                 previewOptions={{
                   style: { background: '#fff' }
                 }}
+                data-color-mode="light"
               />
             </Box>
             <Box>
